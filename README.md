@@ -4,24 +4,35 @@
 
 Built around the Teensy 4.1, SynTee is a compact desktop synthesizer designed for electronic musicians, synth enthusiasts, and DIY audio builders. It produces stereo audio output via an AK4619VN codec, accepts MIDI input over USB, TRS, and Ethernet, and streams audio over AES67 — all on a single PCB.
 
+
+![](hardware/syntee-layout.png)
+
 ## Features
 
-- **Stereo audio output** via AK4619VN codec (48 kHz / 24-bit, I2S)
-- **Stereo audio input** for external processing / effects return
+- **2× stereo audio output** via AK4619VN codec (48 kHz / 24-bit, I2S, 3.5mm jacks)
+- **2× stereo audio input** for external processing / effects return (3.5mm jacks)
+- **Headphone output** with dedicated MAX97220 amp and analog volume knob
+- **4.3" TFT display** (480×272, RA8875 controller) for patch editing and visualization
+- **12 LED-backlit pads** (2×6 grid) for triggering, sequencing, and performance
+- **3 rotary encoders** (Nav-X, Nav-Y, Edit) + **3 buttons** (A, B, C)
 - **MIDI input** via USB host + 3.5mm TRS Type A + network MIDI 2.0
 - **AES67 network audio** TX (stereo out to DAW / mixer)
 - **mDNS/DNS-SD discovery** — auto-announces as `synth-XXXX.local`
-- **Basic controls** — encoders, buttons, small display (TBD)
-- **Single-board design** — one 4-layer PCB, simple power via USB 5V
+- **Panel-accessible SD card** for preset storage, samples, and firmware updates
+- **Single-board design** — one 4-layer PCB (140 × 200 mm), USB 5V power
 
 ## Architecture
 
-SynTee uses a single AK4619VN codec on an I2S bus, driven by the Teensy 4.1's Cortex-M7 at 600 MHz. MIDI input triggers a software synthesizer engine built on the PJRC Audio Library. Audio is routed to the codec DAC outputs and simultaneously packetized as AES67 RTP for network streaming. Power is supplied via USB 5V (no PD negotiation needed).
+SynTee uses a single AK4619VN codec (all 4 channels) on an I2S bus, driven by the Teensy 4.1's Cortex-M7 at 600 MHz. MIDI input triggers a software synthesizer engine built on the PJRC Audio Library. Audio is routed to dual stereo DAC outputs and simultaneously packetized as AES67 RTP for network streaming. Two stereo inputs allow external audio processing and effects returns. Power is supplied via a dedicated USB-C 5V input.
 
 ```
-MIDI IN ──┐
-           ├──→ Synth Engine (Teensy DSP) ──→ AK4619VN DAC ──→ Analog Out
-Network ──┘                                  └──→ AES67 TX ──→ Ethernet
+                                               ┌──→ AK4619VN DAC1 ──→ OUT 1 L/R
+MIDI IN ──┐                                    │
+           ├──→ Synth Engine (Teensy DSP) ──→──┼──→ AK4619VN DAC2 ──→ OUT 2 L/R
+Network ──┘         ▲                          │
+                    │                          ├──→ MAX97220 ──→ Headphones
+AK4619VN ADC1 ◄── IN 1 L/R                    │
+AK4619VN ADC2 ◄── IN 2 L/R                    └──→ AES67 TX ──→ Ethernet
 ```
 
 ## Repository Structure

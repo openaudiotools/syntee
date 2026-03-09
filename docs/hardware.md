@@ -6,9 +6,9 @@
 
 ## Audio Codec
 
-- **Codec:** 1× AK4619VN (4-in / 4-out, using 2-in / 2-out for stereo)
-  - Stereo ADC (external audio input / effects return)
-  - Stereo DAC (synthesizer output)
+- **Codec:** 1× AK4619VN (4-in / 4-out, all channels used)
+  - 2× stereo ADC (IN 1 L/R + IN 2 L/R — external audio inputs / effects returns)
+  - 2× stereo DAC (OUT 1 L/R + OUT 2 L/R — synthesizer outputs)
   - I2S serial audio interface (not TDM — only 4 channels)
   - I2C control interface, address 0x10 (CAD pin low)
   - 48 kHz / 24-bit target
@@ -16,9 +16,11 @@
 
 ### I2S Bus Assignment
 
-- **SAI1 (I2S):** Single AK4619VN codec
-  - TX_DATA0 (pin 7): Teensy → codec SDIN (stereo DAC)
-  - RX_DATA0 (pin 8): Codec SDOUT → Teensy (stereo ADC)
+- **SAI1 (I2S):** Single AK4619VN codec (all 4 channels)
+  - TX_DATA0 (pin 7): Teensy → codec SDIN1 (DAC1 stereo out)
+  - TX_DATA1 (pin 32): Teensy → codec SDIN2 (DAC2 stereo out)
+  - RX_DATA0 (pin 8): Codec SDOUT1 → Teensy (ADC1 stereo in)
+  - RX_DATA1 (pin 6): Codec SDOUT2 → Teensy (ADC2 stereo in)
 - **Clock:** Teensy generates MCLK (256fs = 12.288 MHz), BCLK, LRCLK as I2S master
   - BCLK = 48 kHz × 2 channels × 32 bits = 3.072 MHz
   - Codec slaves to Teensy clock
@@ -26,7 +28,7 @@
 ## MCU / DSP Core
 
 - **Teensy 4.1** (ARM Cortex-M7 @ 600 MHz)
-  - I2S interface for stereo codec
+  - I2S interface for 4-channel codec (2 stereo pairs in + 2 stereo pairs out)
   - USB host capability for MIDI controllers
   - GPIO for encoders/buttons/display
   - PJRC Audio Library ecosystem (oscillators, filters, envelopes, effects)
@@ -48,9 +50,10 @@
 
 ### Power Input
 
-- **USB 5V** — standard USB-B or USB-C connector (5V only, no PD negotiation)
-- No STUSB4500 needed — SynTee draws well under 500 mA
-- Simple: USB connector → polyfuse → 5V rail → Teensy + codec + peripherals
+- **Dedicated USB-C power input** (5V only, no PD negotiation, power-only — no data lines)
+- **PC USB-C** — Teensy native USB for firmware updates and USB MIDI device mode
+- No STUSB4500 needed — SynTee draws under 1A at 5V
+- Simple: Power USB-C → polyfuse → 5V rail → Teensy + codec + peripherals
 
 ### Power Budget (5V rail)
 
@@ -58,14 +61,17 @@
 |------|---------|
 | Teensy 4.1 + logic | ~200 mA |
 | AK4619VN codec | ~20 mA |
-| OPA1678 op-amps (input/output stages) | ~30 mA |
+| OPA1678 op-amps (×4, input/output stages) | ~60 mA |
 | AP2553 USB power switch (quiescent) | ~1 mA |
 | 6N138 optocoupler | ~5 mA |
-| Display (TBD) | ~50–100 mA |
-| Encoders/buttons/LEDs | ~20 mA |
-| **Total estimate** | **~325–375 mA** |
+| 4.3" TFT display (RA8875 + backlight) | ~80–100 mA |
+| MAX97220 headphone amp | ~10 mA |
+| 3× encoders + 3× buttons | ~5 mA |
+| 12× LED-backlit pads | ~25 mA |
+| SD card socket | ~50 mA (peak during write) |
+| **Total estimate** | **~460–480 mA** |
 
-Well within USB 5V / 500 mA. A USB-C connector at 5V / 1.5A provides ample headroom.
+Within USB-C 5V / 1.5A with ample headroom.
 
 ### Power Distribution
 
@@ -78,12 +84,14 @@ Single 5V rail — no need for isolated domains on a single board. ADP7118 or si
 | Part | Quantity | Notes |
 |------|----------|-------|
 | Teensy 4.1 | 1 | ARM Cortex-M7, USB host, I2S audio, Ethernet |
-| AK4619VN | 1 | 4-in/4-out codec, using stereo in + stereo out |
+| AK4619VN | 1 | 4-in/4-out codec, all channels used (2× stereo in + 2× stereo out) |
 | 6N138 | 1 | MIDI IN optocoupler |
 | RJ45 MagJack | 1 | Ethernet with integrated magnetics |
 | ADP7118 | 1 | 5V → 3.3V_A ultra-low-noise LDO for codec analog supply |
 | AP2553 | 1 | USB host VBUS power switch (overcurrent protection, ~500 mA limit) |
-| OPA1678 | 2 | Dual op-amp (single-supply rail-to-rail, 3.3V_A). Input buffers + output Sallen-Key filter |
+| RA8875 | 1 | TFT display controller, SPI interface, drives 4.3" 480×272 LCD |
+| MAX97220 | 1 | Headphone amplifier, stereo, drives 3.5mm headphone jack |
+| OPA1678 | 4 | Dual op-amp (single-supply rail-to-rail, 3.3V_A). Input buffers + output Sallen-Key filters for 2× stereo pairs |
 
 ### Passives & Protection
 
@@ -109,5 +117,5 @@ Single 5V rail — no need for isolated domains on a single board. ADP7118 or si
 
 ### Physical (Estimated)
 
-- **Board dimensions:** TBD (single PCB, compact)
-- **Power consumption:** 5V @ ~350 mA typical
+- **Board dimensions:** 140 × 200 mm (single PCB)
+- **Power consumption:** 5V @ ~470 mA typical

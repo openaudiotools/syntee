@@ -8,8 +8,7 @@
 - **Interface:** I2S (not TDM — only stereo needed)
 - **Clock:** Teensy generates MCLK (12.288 MHz), BCLK (3.072 MHz), LRCLK (48 kHz)
 - **Codec is I2S slave** — all clocks from Teensy SAI1
-- **Channels used:** ADC1 L/R (stereo input), DAC1 L/R (stereo output)
-- **Channels unused:** ADC2 L/R, DAC2 L/R (available for future expansion)
+- **Channels used:** ADC1 L/R (stereo input 1), ADC2 L/R (stereo input 2), DAC1 L/R (stereo output 1), DAC2 L/R (stereo output 2) — all 4 channels active
 - **PDN (Power Down):** Connected to GPIO pin 2. Active-low — hold low during power-up, release after supplies and MCLK are stable.
 
 ### Reset Sequencing
@@ -27,18 +26,20 @@ The AK4619VN requires a specific power-up sequence:
 ### I2C Register Configuration
 
 Key registers to set at init (after reset sequence completes):
-- Power Management: Enable ADC1 + DAC1, disable ADC2 + DAC2
+- Power Management: Enable ADC1 + ADC2 + DAC1 + DAC2 (all channels active)
 - Audio Format: I2S, 24-bit, slave mode
 - Clock: External MCLK, 256fs
 - Volume: Set DAC output level via digital volume register
 
 ### Analog Stages
 
+Each stereo pair (IN 1, IN 2, OUT 1, OUT 2) has its own OPA1678 dual op-amp for a total of **4× OPA1678** (8 op-amp sections).
+
 - **Op-amp:** OPA1678 (single-supply rail-to-rail output, 10 MHz GBW, 4.5 nV/√Hz). Biased at AVDD/2 (1.65V) virtual ground for single-supply 3.3V_A operation.
-- **Input buffer:** Unity-gain OPA1678 buffer before ADC, biased at AVDD/2
-- **Anti-alias filter (input):** 1st-order RC LPF at ADC input. R = 1 kΩ, C = 3.3 nF → f_c ≈ 48 kHz. Sufficient given AK4619VN internal oversampling and digital decimation filter.
-- **Output buffer:** OPA1678 buffer after DAC output, biased at AVDD/2
-- **Reconstruction filter (output):** 2nd-order Sallen-Key LPF at ~40 kHz after DAC output. R1 = R2 = 1 kΩ, C1 = 3.9 nF, C2 = 1.8 nF → f_c ≈ 40 kHz, Q ≈ 0.7 (Butterworth). Uses second OPA1678 section as Sallen-Key buffer.
+- **Input buffer (×4):** Unity-gain OPA1678 buffer before each ADC channel, biased at AVDD/2
+- **Anti-alias filter (input):** 1st-order RC LPF at each ADC input. R = 1 kΩ, C = 3.3 nF → f_c ≈ 48 kHz. Sufficient given AK4619VN internal oversampling and digital decimation filter.
+- **Output buffer (×4):** OPA1678 buffer after each DAC output, biased at AVDD/2
+- **Reconstruction filter (output):** 2nd-order Sallen-Key LPF at ~40 kHz after each DAC output. R1 = R2 = 1 kΩ, C1 = 3.9 nF, C2 = 1.8 nF → f_c ≈ 40 kHz, Q ≈ 0.7 (Butterworth). Uses second OPA1678 section as Sallen-Key buffer.
 - **Maximum expected input level:** +4 dBu (~1.23 Vrms, ~1.74 Vpk) — line level, consumer/prosumer
 
 ---
@@ -98,10 +99,10 @@ The USB Host VBUS output is protected by an AP2553 (or equivalent) power switch 
 
 ## Audio Input Protection
 
-Each audio input has series resistance before the ESD clamp diodes to limit clamp current from overvoltage signals:
+Each audio input (4 jacks total) has series resistance before the ESD clamp diodes to limit clamp current from overvoltage signals:
 
 ```
-1/4" jack ──→ 1 kΩ series resistor ──→ BAT54 clamp diodes (to 3.3V_A and GND) ──→ OPA1678 input buffer
+3.5mm jack ──→ 1 kΩ series resistor ──→ BAT54 clamp diodes (to 3.3V_A and GND) ──→ OPA1678 input buffer
 ```
 
 - **Series resistor:** 1 kΩ limits clamp current to ~4.5 mA at +20 dBu (~7.75 Vpk) worst case. Also forms part of the anti-alias RC filter with the 3.3 nF cap at the ADC input.
@@ -110,13 +111,121 @@ Each audio input has series resistance before the ESD clamp diodes to limit clam
 
 ---
 
-## Control Interface (TBD)
+## Headphone Output (MAX97220)
 
-Placeholder — control interface will be defined as the project progresses:
+```
+AK4619VN DAC1 L/R ──→ MAX97220 INL/INR ──→ MAX97220 OUTL/OUTR ──→ Analog volume pot ──→ 3.5mm TRS jack
+```
 
-- **Encoders:** 2× rotary encoders with push switch (panel-mount, via 5-pin headers)
-- **Display:** Small OLED (128×64, I2C) or small LCD (SPI) — TBD. Pin allocation (SPI vs I2C) should be finalized before layout begins.
-- **Status LEDs:** Power indicator, MIDI activity
+- **Amplifier:** MAX97220 stereo headphone amp (ground-referenced output, no coupling caps needed)
+- **Input:** Tapped from DAC1 output (post reconstruction filter, pre output jack)
+- **Volume control:** Panel-mount analog potentiometer (10 kΩ log taper) between MAX97220 output and the 3.5mm jack. No GPIO pin consumed — pure analog volume control.
+- **Jack location:** Right edge of panel
+- **Power:** 3.3V_A supply (shared with codec analog domain)
+
+---
+
+## Display Interface (RA8875 + 4.3" TFT)
+
+- **Display:** 4.3" TFT LCD, 480×272 resolution
+- **Controller:** RA8875 (built-in graphics acceleration, text rendering, geometric primitives)
+- **Interface:** SPI0 (shared bus with SD card)
+  - CS: pin 10
+  - SCK: pin 13 (up to 20 MHz)
+  - MOSI: pin 11
+  - MISO: pin 12
+- **INT:** Pin 22 — active-low interrupt for touch events and frame sync
+- **RESET:** Pin 37 — hardware reset, hold low during power-up, release after SPI bus is ready
+- **Power:** 3.3V digital + backlight LED supply (from 5V rail via current-limiting resistor or dedicated LED driver)
+
+### Display Init Sequence
+
+1. Assert RESET low, wait ≥1 ms
+2. Release RESET high, wait ≥10 ms
+3. Configure RA8875 via SPI: PLL setup, display timing, backlight PWM
+4. Clear display memory
+5. Enable display output
+
+---
+
+## Pad Scanning Circuit (4×3 Matrix + LED Backlighting)
+
+### Switch Matrix
+
+12 tactile switches in a 4-row × 3-column matrix:
+
+```
+        Col 0 (pin 5)    Col 1 (pin 9)    Col 2 (pin 14)
+             │                 │                 │
+Row 0 (pin 0)──┤── [SW1] ──────┤── [SW2] ──────┤── [SW3]
+Row 1 (pin 1)──┤── [SW4] ──────┤── [SW5] ──────┤── [SW6]
+Row 2 (pin 3)──┤── [SW7] ──────┤── [SW8] ──────┤── [SW9]
+Row 3 (pin 4)──┤── [SW10] ─────┤── [SW11] ─────┤── [SW12]
+```
+
+- **Scanning:** Row pins configured as outputs (drive low one at a time), column pins as inputs with pull-ups. Read columns to detect pressed switches.
+- **Diodes:** 1N4148 on each switch for N-key rollover (prevents ghost keypresses).
+- **Scan rate:** ~1 kHz in main loop.
+
+### LED Backlighting
+
+12 LEDs (one per pad) driven by 2× 74HC595 8-bit shift registers daisy-chained:
+
+```
+Teensy pin 38 (SER)   ──→ 74HC595 #1 SER
+Teensy pin 39 (SRCLK) ──→ 74HC595 #1/#2 SRCLK
+Teensy pin 40 (RCLK)  ──→ 74HC595 #1/#2 RCLK
+74HC595 #1 QH'        ──→ 74HC595 #2 SER
+```
+
+- **LED current:** ~5 mA per LED via series resistor (220Ω for 3.3V supply, or 150Ω for 5V supply)
+- **Total LED current:** 12 × 5 mA = 60 mA max (if all LEDs on), typically ~25 mA average
+
+---
+
+## SD Card Interface
+
+Panel-accessible micro SD card socket on the **left edge** of the panel.
+
+- **Interface:** SPI0 (shared bus with RA8875 display)
+  - CS: pin 16 (dedicated)
+  - SCK/MOSI/MISO: shared with display (pins 13/11/12)
+- **Bus coordination:** Firmware must ensure exclusive SPI access (no concurrent display + SD transfers). Use `SPI.beginTransaction()` / `SPI.endTransaction()` with appropriate CS management.
+- **Power:** 3.3V supply
+
+**Note:** This is separate from the Teensy 4.1's built-in SDIO card socket on the bottom of the board. The panel socket provides user-accessible storage without opening the enclosure.
+
+---
+
+## Control Interface
+
+### Encoders (×3)
+
+Rotary encoders with push switch, panel-mount via 5-pin headers:
+
+| Encoder | A pin | B pin | SW pin | Role |
+|---------|-------|-------|--------|------|
+| Nav-X | 24 | 25 | 26 | Horizontal nav, push = Back |
+| Nav-Y | 27 | 28 | 29 | Vertical nav, push = Enter |
+| Edit | 30 | 31 | 33 | Value edit, push = Menu |
+
+Hardware debouncing: 100 nF caps on A/B/SW lines to GND. Software: PJRC Encoder library (interrupt-driven quadrature decoding on A/B pins).
+
+### Buttons (×3)
+
+Momentary push buttons, panel-mount:
+
+| Button | Pin | Notes |
+|--------|-----|-------|
+| A | 34 | Active-low, internal pull-up |
+| B | 35 | Active-low, internal pull-up |
+| C | 36 | Active-low, internal pull-up |
+
+100 nF hardware debounce caps. Software: Bounce library.
+
+### Status LEDs
+
+- **MIDI activity:** Pin 41, active-high, via 220Ω series resistor to LED
 
 ---
 

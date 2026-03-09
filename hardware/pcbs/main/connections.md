@@ -4,29 +4,33 @@ All connectors on the single SynTee board. Since there's only one PCB, all conne
 
 ---
 
-## Audio Output (1/4" TS Jacks, ×2)
+## Audio Output (3.5mm TS Jacks, ×4)
+
+All audio outputs on the **top edge** of the panel.
 
 | Jack | Signal | Notes |
 |------|--------|-------|
-| OUT L | AK4619VN DAC1 L | Left channel, via 2nd-order Sallen-Key reconstruction filter (~40 kHz) + OPA1678 output buffer |
-| OUT R | AK4619VN DAC1 R | Right channel, via 2nd-order Sallen-Key reconstruction filter (~40 kHz) + OPA1678 output buffer |
+| OUT 1 L | AK4619VN DAC1 L | Left channel, via 2nd-order Sallen-Key reconstruction filter (~40 kHz) + OPA1678 output buffer |
+| OUT 1 R | AK4619VN DAC1 R | Right channel, via 2nd-order Sallen-Key reconstruction filter (~40 kHz) + OPA1678 output buffer |
+| OUT 2 L | AK4619VN DAC2 L | Left channel, via 2nd-order Sallen-Key reconstruction filter (~40 kHz) + OPA1678 output buffer |
+| OUT 2 R | AK4619VN DAC2 R | Right channel, via 2nd-order Sallen-Key reconstruction filter (~40 kHz) + OPA1678 output buffer |
 
-**Connector:** 1/4" TS panel-mount jacks. BAT54 ESD diodes on each jack.
-
-**Note:** 1/4" jacks are physically large. If enclosure size becomes a constraint, consider 3.5mm TRS jacks instead — common on modern compact synth modules.
+**Connector:** 3.5mm TS panel-mount jacks. BAT54 ESD diodes on each jack.
 
 ---
 
-## Audio Input (1/4" TS Jacks, ×2)
+## Audio Input (3.5mm TS Jacks, ×4)
+
+All audio inputs on the **top edge** of the panel.
 
 | Jack | Signal | Notes |
 |------|--------|-------|
-| IN L | AK4619VN ADC1 L | Left channel, via 1 kΩ series resistor → BAT54 clamp → OPA1678 input buffer |
-| IN R | AK4619VN ADC1 R | Right channel, via 1 kΩ series resistor → BAT54 clamp → OPA1678 input buffer |
+| IN 1 L | AK4619VN ADC1 L | Left channel, via 1 kΩ series resistor → BAT54 clamp → OPA1678 input buffer |
+| IN 1 R | AK4619VN ADC1 R | Right channel, via 1 kΩ series resistor → BAT54 clamp → OPA1678 input buffer |
+| IN 2 L | AK4619VN ADC2 L | Left channel, via 1 kΩ series resistor → BAT54 clamp → OPA1678 input buffer |
+| IN 2 R | AK4619VN ADC2 R | Right channel, via 1 kΩ series resistor → BAT54 clamp → OPA1678 input buffer |
 
-**Connector:** 1/4" TS panel-mount jacks. 1 kΩ series resistor before BAT54 ESD/overvoltage clamp diodes (to 3.3V_A and GND) on each jack. Maximum safe input: +20 dBu.
-
-**Note:** 1/4" jacks are physically large. If enclosure size becomes a constraint, consider 3.5mm TRS jacks instead — common on modern compact synth modules.
+**Connector:** 3.5mm TS panel-mount jacks. 1 kΩ series resistor before BAT54 ESD/overvoltage clamp diodes (to 3.3V_A and GND) on each jack. Maximum safe input: +20 dBu.
 
 ---
 
@@ -68,13 +72,48 @@ Single USB-A socket for MIDI controllers. Connected to Teensy USB Host bottom pa
 
 ---
 
-## USB Power Input
+## Headphone Output (3.5mm TRS Jack)
 
-USB-B or USB-C connector for 5V power. Through polyfuse to 5V rail.
+Located on the **right edge** of the panel.
+
+| Pin | Signal | Notes |
+|-----|--------|-------|
+| Tip | Left audio | MAX97220 output L |
+| Ring | Right audio | MAX97220 output R |
+| Sleeve | GND | Signal ground |
+
+**Connector:** 3.5mm TRS panel-mount jack. Fed from AK4619VN DAC1 output via MAX97220 stereo headphone amplifier. An analog potentiometer (panel-mount, right edge below headphone jack) controls headphone volume — no GPIO pin needed for volume control.
 
 ---
 
-## Encoder Headers (×2, pin headers)
+## USB — PC (Teensy Native USB-C)
+
+Located on the **left edge** of the panel.
+
+Teensy 4.1 native USB-C connector. Used for:
+- Firmware updates (USB DFU)
+- USB MIDI device mode (Teensy appears as a MIDI device to the host PC)
+- Serial debug console
+
+---
+
+## USB — PWR (Power-Only USB-C)
+
+Located on the **left edge** of the panel, below PC USB.
+
+Dedicated USB-C connector for 5V power input only (no data lines connected). Through polyfuse to 5V rail. Provides power to the entire board.
+
+---
+
+## SD Card Socket
+
+Located on the **left edge** of the panel, below the USB connectors.
+
+Panel-accessible micro SD card socket. Connected via SPI0 (shared bus with RA8875 display, separate CS on pin 16). Supports FAT32 and exFAT for preset storage, sample loading, and configuration files.
+
+---
+
+## Encoder Headers (×3, pin headers)
 
 | Pin | Signal |
 |-----|--------|
@@ -84,13 +123,63 @@ USB-B or USB-C connector for 5V power. Through polyfuse to 5V rail.
 | 4 | GND |
 | 5 | 3.3V (pull-up supply) |
 
-5-pin 2.54mm headers for panel-mount encoders. Teensy pin assignments TBD.
+5-pin 2.54mm headers for panel-mount encoders.
+
+| Encoder | Role | Teensy Pins (A/B/SW) |
+|---------|------|---------------------|
+| **Nav-X** | Horizontal navigation, push = Back | 24 / 25 / 26 |
+| **Nav-Y** | Vertical navigation, push = Enter | 27 / 28 / 29 |
+| **Edit** | Value editing, push = Menu | 30 / 31 / 33 |
 
 ---
 
-## Display Header (TBD)
+## Buttons (×3, momentary)
 
-Pin header for small OLED or LCD display. Interface (I2C or SPI) depends on display choice. Pinout will be defined when display is selected.
+| Button | Teensy Pin | Notes |
+|--------|-----------|-------|
+| **A** | 34 | Active-low, internal pull-up |
+| **B** | 35 | Active-low, internal pull-up |
+| **C** | 36 | Active-low, internal pull-up |
+
+Panel-mount momentary push buttons. No external pull-up resistors needed — Teensy internal pull-ups used.
+
+---
+
+## Pads (×12, tactile switches with LED backlighting)
+
+12 tactile switch pads arranged in a 2×6 grid on the front panel. Each pad has an individual LED for backlighting.
+
+### Pad Matrix (4×3 scan)
+
+| | Col 0 (pin 5) | Col 1 (pin 9) | Col 2 (pin 14) |
+|---|---|---|---|
+| **Row 0 (pin 0)** | Pad 1 | Pad 2 | Pad 3 |
+| **Row 1 (pin 1)** | Pad 4 | Pad 5 | Pad 6 |
+| **Row 2 (pin 3)** | Pad 7 | Pad 8 | Pad 9 |
+| **Row 3 (pin 4)** | Pad 10 | Pad 11 | Pad 12 |
+
+**Note:** The physical 2×6 grid maps to a 4×3 electrical matrix for efficient GPIO usage.
+
+### LED Backlighting
+
+12 LEDs driven via 2× 74HC595 shift registers (12 of 16 outputs used). Controlled by 3 GPIO pins: SER (pin 38), SRCLK (pin 39), RCLK (pin 40).
+
+---
+
+## Display (4.3" TFT, RA8875 Controller)
+
+| Pin | Signal | Teensy Pin |
+|-----|--------|-----------|
+| CS | SPI chip select | 10 |
+| SCK | SPI clock | 13 |
+| MOSI | SPI data out | 11 |
+| MISO | SPI data in | 12 |
+| INT | Interrupt | 22 |
+| RESET | Hardware reset | 37 |
+| VCC | 3.3V | — |
+| GND | Ground | — |
+
+4.3" TFT LCD, 480×272 resolution, RA8875 display controller. SPI0 bus (shared with SD card, separate CS lines).
 
 ---
 

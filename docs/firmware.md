@@ -19,7 +19,9 @@
 - **Buttons:** PJRC Bounce Library (debouncing)
 - **Network:** QNEthernet (TCP/IP stack, mDNS, UDP)
 - **MIDI:** USBHost_t36 (USB MIDI host), Serial MIDI (TRS)
-- **Display:** TBD — depends on display choice (OLED via I2C, or small LCD via SPI)
+- **Display:** RA8875 library (Adafruit_RA8875 or custom SPI driver for 4.3" TFT, 480×272)
+- **SD Card:** SdFat or SD library (SPI0, shared bus with display)
+- **Pad LEDs:** 74HC595 shift register driver (SER/SRCLK/RCLK GPIO)
 
 ------
 
@@ -35,22 +37,30 @@ MIDI IN ────────────────────────
                           │   CC, pitch)  │
                           └───────┬───────┘
                                   │
-                                  ▼
-                          ┌───────────────┐
-                          │  Synth Engine │
-                          │  (oscillators,│
-                          │   filters,    │
-                          │   envelopes,  │
-                          │   effects)    │
-                          └───────┬───────┘
-                                  │
-                    ┌─────────────┼─────────────┐
-                    ▼                             ▼
-            ┌───────────────┐             ┌───────────────┐
-            │  I2S TX       │             │  RTP Encode   │
-            │  (AK4619VN    │             │  (AES67 TX    │
-            │   DAC out)    │             │   to network) │
-            └───────────────┘             └───────────────┘
+                    ┌─────────────┤
+                    ▼             ▼
+            ┌───────────────┐  ┌───────────────┐
+            │  I2S RX       │  │  Synth Engine │
+            │  (AK4619VN    │  │  (oscillators,│
+            │   ADC1+ADC2   │  │   filters,    │
+            │   stereo in)  │  │   envelopes,  │
+            └───────┬───────┘  │   effects)    │
+                    │          └───────┬───────┘
+                    │                  │
+                    ▼    mix / route   ▼
+                    ┌─────────────────────┐
+                    │     Audio Router    │
+                    │  (mix, FX, routing) │
+                    └──────────┬──────────┘
+                               │
+              ┌────────────────┼────────────────┐
+              ▼                ▼                 ▼
+      ┌───────────────┐ ┌───────────────┐ ┌───────────────┐
+      │  I2S TX       │ │  Headphone    │ │  RTP Encode   │
+      │  (AK4619VN    │ │  (MAX97220    │ │  (AES67 TX    │
+      │   DAC1+DAC2   │ │   from DAC)   │ │   to network) │
+      │   stereo out) │ │               │ │               │
+      └───────────────┘ └───────────────┘ └───────────────┘
 ```
 
 ### Synth Engine (Planned)
@@ -90,16 +100,18 @@ The PJRC Audio Library runs on a timer interrupt and preempts all other code:
 
 | Subsystem | Estimated CPU |
 |-----------|---------------|
-| I2S receive (stereo) | ~1% |
-| I2S transmit (stereo) | ~1% |
+| I2S receive (2× stereo) | ~2% |
+| I2S transmit (2× stereo) | ~2% |
 | Synth engine (8 voices) | ~15–25% |
 | RTP audio encode | ~1% |
 | Network stack (QNEthernet + mDNS + PTP) | ~3–5% |
 | MIDI parsing | <1% |
-| UI updates | <1% |
-| **Total** | **~25–35%** |
+| UI updates (RA8875 SPI) | ~2% |
+| Pad scanning + LED update | <1% |
+| SD card access (non-audio) | <1% |
+| **Total** | **~30–40%** |
 
-**~65% CPU headroom** remains — room for more voices, effects, or future features.
+**~60% CPU headroom** remains — room for more voices, effects, or future features.
 
 ------
 
@@ -144,6 +156,81 @@ Main Loop (low priority):
   +-- RTP/PTP message processing
   +-- mDNS daemon (polled, ~100 ms interval)
   +-- MIDI parsing (USB host ISR + Serial RX)
-  +-- Display updates
-  +-- Encoder/button polling
+  +-- Display updates (RA8875 SPI)
+  +-- Encoder/button polling (3× encoders, 3× buttons)
+  +-- Pad matrix scanning + LED shift register update
+  +-- SD card file operations (preset load/save)
 ```
+
+------
+
+## Display Driver (RA8875)
+
+The 4.3" TFT display (480×272) uses the RA8875 display controller over SPI0:
+
+- **SPI bus:** Shared with SD card (separate CS lines, coordinated access)
+- **SPI clock:** Up to 20 MHz for RA8875
+- **Interrupt:** RA8875 INT pin (pin 22) for touch events and V-sync
+- **Reset:** Dedicated GPIO (pin 37) for hardware reset during init
+
+Display updates run in the main loop, not the audio interrupt. Use the RA8875's built-in graphics acceleration (rectangle fill, line draw, text rendering) to minimize SPI traffic.
+
+------
+
+## Pad Scanning and LED Control
+
+### Pad Matrix (4×3)
+
+The 12 tactile switch pads are wired as a 4-row × 3-column scan matrix:
+
+- **Scan rate:** ~1 kHz (1 ms per full scan) in main loop
+- **Debounce:** Software debounce per pad (Bounce library or custom, ~5 ms)
+- **Velocity sensing:** Not supported (digital on/off only — tactile switches)
+
+### LED Backlighting
+
+Each pad has an individual LED driven via 2× 74HC595 shift registers (12 outputs used of 16):
+
+- **Update rate:** Shift out new LED state after each pad scan (~1 kHz)
+- **PWM dimming:** Not per-LED (shift register is on/off). Global brightness can be controlled via a series resistor or by varying the shift register update duty cycle.
+- **GPIO pins:** SER (pin 38), SRCLK (pin 39), RCLK (pin 40)
+
+------
+
+## UI Navigation Model
+
+### Encoders
+
+| Encoder | Role | Turn action | Push action |
+|---------|------|-------------|-------------|
+| **Nav-X** | Horizontal navigation | Scroll left/right, change tabs | Back / cancel |
+| **Nav-Y** | Vertical navigation | Scroll up/down, change parameter | Enter / confirm |
+| **Edit** | Value editing | Adjust selected value | Open menu / context action |
+
+### Buttons
+
+| Button | Role |
+|--------|------|
+| **A** | Context-dependent action (e.g., play, arm, toggle) |
+| **B** | Context-dependent action (e.g., stop, mute, shift) |
+| **C** | Context-dependent action (e.g., record, solo, alt) |
+
+### Pads
+
+12 pads arranged in a 2×6 grid. Pad functions depend on the active mode:
+- **Trigger mode:** Each pad triggers a note or sample
+- **Sequencer mode:** Pads represent steps in a sequence
+- **Preset mode:** Pads select presets or banks
+
+------
+
+## SD Card Access
+
+The panel-accessible SD card socket connects via SPI0 (shared bus with RA8875 display):
+
+- **CS pin:** Pin 16
+- **Library:** SdFat (supports FAT32, exFAT)
+- **Use cases:** Preset storage (JSON or binary), sample loading, firmware update files, user configuration
+- **Access pattern:** File I/O happens only in the main loop, never in the audio interrupt. Large reads (sample loading) should be chunked to avoid blocking the main loop for too long.
+
+**Note:** The Teensy 4.1 also has a built-in SD card socket on the bottom of the board (SDIO interface). The panel-accessible SD card on SPI0 is a separate, user-facing socket for convenient access without opening the enclosure.
