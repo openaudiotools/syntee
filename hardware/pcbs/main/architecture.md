@@ -125,26 +125,22 @@ AK4619VN DAC1 L/R ──→ MAX97220 INL/INR ──→ MAX97220 OUTL/OUTR ──
 
 ---
 
-## Display Interface (RA8875 + 4.3" TFT)
+## Display Module (DESPEE)
 
-- **Display:** 4.3" TFT LCD, 480×272 resolution
-- **Controller:** RA8875 (built-in graphics acceleration, text rendering, geometric primitives)
-- **Interface:** SPI0 (shared bus with SD card)
-  - CS: pin 10
-  - SCK: pin 13 (up to 20 MHz)
-  - MOSI: pin 11
-  - MISO: pin 12
-- **INT:** Pin 22 — active-low interrupt for touch events and frame sync
-- **RESET:** Pin 37 — hardware reset, hold low during power-up, release after SPI bus is ready
-- **Power:** 3.3V digital + backlight LED supply (from 5V rail via current-limiting resistor or dedicated LED driver)
+The display is an external [DESPEE](https://github.com/openaudiotools/despee) module — a custom ESP32-S3 PCB with a 4.3" 800×480 capacitive touch LCD running LVGL. Connected via a 6-pin JST-PH header:
 
-### Display Init Sequence
+- **Interface:** Serial1 UART at 921600 baud (TX pin 1, RX pin 0)
+- **Protocol:** Binary widget commands (COBS-encoded, CRC16) — see DESPEE protocol docs
+- **Boot control:** ESP32_EN (pin 22, active-high with pull-up on module), ESP32_GPIO0 (pin 37, LOW = UART bootloader)
+- **Power:** 5V from main board (DESPEE has onboard 3.3V regulation)
 
-1. Assert RESET low, wait ≥1 ms
-2. Release RESET high, wait ≥10 ms
-3. Configure RA8875 via SPI: PLL setup, display timing, backlight PWM
-4. Clear display memory
-5. Enable display output
+### Boot Sequence
+
+DESPEE boots independently — no init sequence required from Teensy. After Teensy starts, it loads `ui.json` from SD card and streams widget create/update commands over UART. Touch coordinates are sent back from DESPEE.
+
+### Firmware Update (via SD card)
+
+Teensy uses esp-serial-flasher to reflash DESPEE firmware: pull ESP32_GPIO0 (pin 37) LOW, pulse ESP32_EN (pin 22) to reset into UART bootloader, stream firmware binary over Serial1.
 
 ---
 
@@ -157,8 +153,8 @@ AK4619VN DAC1 L/R ──→ MAX97220 INL/INR ──→ MAX97220 OUTL/OUTR ──
 ```
         Col 0 (pin 5)    Col 1 (pin 9)    Col 2 (pin 14)
              │                 │                 │
-Row 0 (pin 0)──┤── [SW1] ──────┤── [SW2] ──────┤── [SW3]
-Row 1 (pin 1)──┤── [SW4] ──────┤── [SW5] ──────┤── [SW6]
+Row 0 (pin 10)──┤── [SW1] ──────┤── [SW2] ──────┤── [SW3]
+Row 1 (pin 41)──┤── [SW4] ──────┤── [SW5] ──────┤── [SW6]
 Row 2 (pin 3)──┤── [SW7] ──────┤── [SW8] ──────┤── [SW9]
 Row 3 (pin 4)──┤── [SW10] ─────┤── [SW11] ─────┤── [SW12]
 ```
@@ -187,10 +183,9 @@ Teensy pin 40 (RCLK)  ──→ 74HC595 #1/#2 RCLK
 
 Panel-accessible micro SD card socket on the **left edge** of the panel.
 
-- **Interface:** SPI0 (shared bus with RA8875 display)
+- **Interface:** SPI0 (exclusive access — no longer shared with display)
   - CS: pin 16 (dedicated)
-  - SCK/MOSI/MISO: shared with display (pins 13/11/12)
-- **Bus coordination:** Firmware must ensure exclusive SPI access (no concurrent display + SD transfers). Use `SPI.beginTransaction()` / `SPI.endTransaction()` with appropriate CS management.
+  - SCK/MOSI/MISO: pins 13/11/12
 - **Power:** 3.3V supply
 
 **Note:** This is separate from the Teensy 4.1's built-in SDIO card socket on the bottom of the board. The panel socket provides user-accessible storage without opening the enclosure.
@@ -225,7 +220,7 @@ Momentary push buttons, panel-mount:
 
 ### Status LEDs
 
-- **MIDI activity:** Pin 41, active-high, via 220Ω series resistor to LED
+- **MIDI activity:** Driven via 74HC595 shift register output 13 (pin 41 reassigned to pad matrix row 1)
 
 ---
 

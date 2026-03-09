@@ -30,7 +30,7 @@
 - **Teensy 4.1** (ARM Cortex-M7 @ 600 MHz)
   - I2S interface for 4-channel codec (2 stereo pairs in + 2 stereo pairs out)
   - USB host capability for MIDI controllers
-  - GPIO for encoders/buttons/display
+  - GPIO for encoders/buttons; UART link to DESPEE display module
   - PJRC Audio Library ecosystem (oscillators, filters, envelopes, effects)
   - Built-in Ethernet (DP83825I PHY, 100 Mbps)
 - **DAW connectivity:** Via Ethernet (AES67) — stereo network audio TX
@@ -64,14 +64,14 @@
 | OPA1678 op-amps (×4, input/output stages) | ~60 mA |
 | AP2553 USB power switch (quiescent) | ~1 mA |
 | 6N138 optocoupler | ~5 mA |
-| 4.3" TFT display (RA8875 + backlight) | ~80–100 mA |
+| DESPEE display module (ESP32-S3 + 4.3" LCD + backlight) | ~250–350 mA |
 | MAX97220 headphone amp | ~10 mA |
 | 3× encoders + 3× buttons | ~5 mA |
 | 12× LED-backlit pads | ~25 mA |
 | SD card socket | ~50 mA (peak during write) |
-| **Total estimate** | **~460–480 mA** |
+| **Total estimate** | **~630–730 mA** |
 
-Within USB-C 5V / 1.5A with ample headroom.
+Within USB-C 5V / 1.5A with headroom.
 
 ### Power Distribution
 
@@ -89,7 +89,7 @@ Single 5V rail — no need for isolated domains on a single board. ADP7118 or si
 | RJ45 MagJack | 1 | Ethernet with integrated magnetics |
 | ADP7118 | 1 | 5V → 3.3V_A ultra-low-noise LDO for codec analog supply |
 | AP2553 | 1 | USB host VBUS power switch (overcurrent protection, ~500 mA limit) |
-| RA8875 | 1 | TFT display controller, SPI interface, drives 4.3" 480×272 LCD |
+| DESPEE module | 1 | External display ([openaudiotools/despee](https://github.com/openaudiotools/despee)); ESP32-S3 + 4.3" 800×480 LCD; 6-pin JST-PH UART |
 | MAX97220 | 1 | Headphone amplifier, stereo, drives 3.5mm headphone jack |
 | OPA1678 | 4 | Dual op-amp (single-supply rail-to-rail, 3.3V_A). Input buffers + output Sallen-Key filters for 2× stereo pairs |
 
@@ -118,4 +118,4 @@ Single 5V rail — no need for isolated domains on a single board. ADP7118 or si
 ### Physical (Estimated)
 
 - **Board dimensions:** 140 × 200 mm (single PCB)
-- **Power consumption:** 5V @ ~470 mA typical
+- **Power consumption:** 5V @ ~680 mA typical

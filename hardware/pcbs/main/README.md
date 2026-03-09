@@ -2,13 +2,13 @@
 
 **Dimensions:** 140 × 200 mm | **Layers:** 4 | **Orientation:** Horizontal | **Instances:** 1
 
-Single board for the entire SynTee synthesizer. Houses the Teensy 4.1 (on socket headers), AK4619VN codec, RA8875 TFT display, MAX97220 headphone amp, MIDI interface, Ethernet MagJack, power entry, and all user controls (3 encoders, 3 buttons, 12 LED-backlit pads). Connectors are distributed across 4 panel edges: audio + MIDI (top), USB + SD (left), headphones + volume (right), Ethernet + USB host (rear).
+Single board for the entire SynTee synthesizer. Houses the Teensy 4.1 (on socket headers), AK4619VN codec, MAX97220 headphone amp, MIDI interface, Ethernet MagJack, power entry, 6-pin JST-PH header for DESPEE display module, and all user controls (3 encoders, 3 buttons, 12 LED-backlit pads). Connectors are distributed across 4 panel edges: audio + MIDI (top), USB + SD (left), headphones + volume (right), Ethernet + USB host (rear).
 
 ## Key ICs
 
 - Teensy 4.1 on socket headers (+ optional PSRAM)
 - AK4619VN — 4-in/4-out codec (all channels used: 2× stereo in + 2× stereo out), PDN controlled by GPIO pin 2
-- RA8875 — TFT display controller (SPI, drives 4.3" 480×272 LCD)
+- 6-pin JST-PH header for [DESPEE](https://github.com/openaudiotools/despee) display module (Serial1 UART + boot control)
 - MAX97220 — Stereo headphone amplifier (drives 3.5mm headphone jack)
 - OPA1678 — Dual audio op-amp (×4) for input buffers and output Sallen-Key filters (single-supply 3.3V_A)
 - 6N138 — MIDI IN optocoupler
@@ -22,7 +22,7 @@ Single board for the entire SynTee synthesizer. Houses the Teensy 4.1 (on socket
 2. **Analog zone:** AK4619VN codec, OPA1678 op-amp stages (×4), audio jacks (8× 3.5mm)
 3. **Power zone:** USB-C power entry, polyfuse, LDO
 4. **Control zone:** 3× encoder headers, 3× button headers, 12× pad matrix + LED shift registers
-5. **Display zone:** RA8875 controller + 4.3" TFT connector (SPI bus)
+5. **Display zone:** 6-pin JST-PH header for DESPEE display module (Serial1 UART + boot control)
 6. **Headphone zone:** MAX97220 amp, analog volume pot, 3.5mm TRS jack
 
 ## Board Zoning
@@ -39,9 +39,9 @@ Physical placement map driven by noise isolation and the 4-edge panel layout. Co
 W    │                                                                        │  E
 E    │  ┌─────────┐  ┌──────────────────┐                                    │  A
 S    │  │ ADP7118 │  │  AK4619VN codec  │  ┌──────────────────┐             │  S
-T    │  │ LDO     │  │  AVDD ← west     │  │  RA8875 display  │  [PHONES]  │  T
-     │  │ 3.3V_A  │  │  DVDD ← south    │  │  controller      │  3.5mm     │
-[PC] │  └─────────┘  │  analog ← north  │  │  (SPI0)          │            │ (right
+T    │  │ LDO     │  │  AVDD ← west     │  │  DESPEE header  │  [PHONES]  │  T
+     │  │ 3.3V_A  │  │  DVDD ← south    │  │  (6-pin JST-PH,│  3.5mm     │
+[PC] │  └─────────┘  │  analog ← north  │  │   Serial1 UART)│            │ (right
 USB-C│                └──────────────────┘  └──────────────────┘  [VOL pot] │  edge)
      │                                                                        │
 [PWR]│  ┌──────────────────────────────────────┐  [Nav-X][Nav-Y][Edit]       │
@@ -67,7 +67,7 @@ card]│  │  ETH pads ←  south end              │   Buttons ×3           
 - **Op-amps near codec.** OPA1678s (×4) and associated Sallen-Key filter passives within 15 mm of AK4619VN analog pins to minimize trace length in the sensitive signal path.
 - **Analog power locality.** ADP7118 LDO placed adjacent to codec, with 3.3V_A output decoupling capacitors at the codec AVDD pins (< 5 mm).
 - **No digital routing through analog zone.** No digital signal traces cross the analog zone (codec + op-amps + audio jacks) on the outer copper layers (F.Cu / B.Cu). Digital signals use inner layers or route around the zone.
-- **Display and SD on SPI0.** RA8875 display controller and SD card socket share SPI0 bus. Place both near Teensy SPI0 pins (10–13) with short traces.
+- **DESPEE header near Serial1 pins.** Place the 6-pin JST-PH DESPEE header near Teensy Serial1 pins (0/1) and boot control pins (22/37). Short UART traces minimize noise coupling.
 - **Headphone amp near codec.** MAX97220 placed near DAC1 output (east side), close to the right-edge headphone jack. Keep analog signal path short.
 - **Control cluster.** Encoders, buttons, and pad matrix grouped in the center-south area below the display, away from the analog zone.
 

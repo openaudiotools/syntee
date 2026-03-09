@@ -55,6 +55,24 @@ MIDI IN is receive-only at 31,250 baud. Pin 15 configured as Serial3 RX.
 
 MIDI OUT is transmit-only at 31,250 baud. 3.3V MIDI current-loop output per MMA CA-033 via 3.5mm TRS Type A jack.
 
+### Serial1 — DESPEE Display Module
+
+| Teensy Pin | Function |
+|-----------|----------|
+| **0** | RX (DESPEE TX → Teensy) |
+| **1** | TX (Teensy → DESPEE RX) |
+
+Serial1 UART at 921600 baud. Binary widget commands (COBS-encoded, CRC16) to DESPEE; touch coordinates from DESPEE.
+
+### DESPEE Boot Control
+
+| Teensy Pin | Function |
+|-----------|----------|
+| **22** | ESP32_EN (active-high enable; pull-up on DESPEE module) |
+| **37** | ESP32_GPIO0 (boot mode: LOW = UART bootloader for firmware update) |
+
+GPIO outputs for controlling DESPEE module reset and firmware flashing (used by esp-serial-flasher for SD card updates).
+
 ### AK4619VN PDN (Power Down) Control
 
 | Teensy Pin | Function |
@@ -93,6 +111,8 @@ Routed from Teensy bottom pads directly to RJ45 MagJack with integrated magnetic
 
 | Pin | Peripheral |
 |-----|-----------|
+| 0 | Serial1 RX (DESPEE UART) |
+| 1 | Serial1 TX (DESPEE UART) |
 | 2 | AK4619VN PDN (GPIO) |
 | 6 | SAI1 RX_DATA1 (ADC2) |
 | 7 | SAI1 TX_DATA0 (DAC1) |
@@ -103,18 +123,20 @@ Routed from Teensy bottom pads directly to RJ45 MagJack with integrated magnetic
 | 19 | Wire SCL |
 | 20 | SAI1 LRCLK |
 | 21 | SAI1 BCLK |
+| 22 | DESPEE ESP32_EN (GPIO) |
 | 23 | SAI1 MCLK |
 | 32 | SAI1 TX_DATA1 (DAC2) |
+| 37 | DESPEE ESP32_GPIO0 (GPIO) |
 
-**Total edge pins consumed by peripherals: 12** (plus bottom pads for USB Host, Ethernet).
+**Total edge pins consumed by peripherals: 16** (plus bottom pads for USB Host, Ethernet).
 
 ------
 
 ## GPIO Budget
 
 Total Teensy 4.1 edge pins: **42** (pins 0–41)
-Consumed by peripherals: **12** (SAI1 ×7, I2C ×2, Serial3 RX ×1, Serial4 TX ×1, AK4619VN PDN ×1)
-Available for GPIO: **30**
+Consumed by peripherals: **16** (SAI1 ×7, I2C ×2, Serial1 ×2, Serial3 RX ×1, Serial4 TX ×1, AK4619VN PDN ×1, DESPEE boot control ×2)
+Available for GPIO: **26**
 
 ### GPIO Requirements
 
@@ -128,14 +150,11 @@ Available for GPIO: **30**
 | Button C | **1** | Momentary, active-low with pull-up |
 | 12× pads (4×3 matrix) | **7** | 4 row + 3 column scan lines |
 | Pad LEDs (shift register) | **3** | SER, SRCLK, RCLK (e.g. 2× 74HC595) |
-| RA8875 display (SPI0) | **4** | CS, SCK (13), MOSI (11), MISO (12) |
-| RA8875 INT | **1** | Touch/display interrupt |
-| RA8875 RESET | **1** | Display reset |
-| SD card (SPI0 shared) | **1** | CS only (shares SCK/MOSI/MISO with display) |
-| Status LEDs | **1–2** | Power, MIDI activity |
-| **Total** | **~30** | |
+| SD card (SPI0) | **4** | CS + SCK (13) + MOSI (11) + MISO (12) — exclusive, no longer shared with display |
+| Status LEDs | **1** | Power only (MIDI LED moved to 74HC595) |
+| **Total** | **~23** | |
 
-**Remaining spare:** ~0 pins — GPIO budget is tight. The pad LED shift-register approach and SPI bus sharing are essential to fit within the 30 available GPIO pins. If more pins are needed, consider I2C GPIO expanders or multiplexing buttons with the pad matrix.
+**Remaining spare:** ~3 pins. DESPEE display module uses dedicated Serial1 UART + boot control pins (counted under peripherals, not GPIO). MIDI activity LED moved to a spare 74HC595 shift register output (output 13 of 16).
 
 ------
 
@@ -143,8 +162,8 @@ Available for GPIO: **30**
 
 | Teensy Pin | Assignment | Notes |
 |-----------|-----------|-------|
-| **0** | Pad matrix row 0 | 4×3 matrix scanning |
-| **1** | Pad matrix row 1 | 4×3 matrix scanning |
+| **0** | Serial1 RX (DESPEE UART) | DESPEE TX → Teensy (touch events, status) |
+| **1** | Serial1 TX (DESPEE UART) | Teensy → DESPEE RX (widget commands) |
 | **2** | AK4619VN PDN | Codec power-down control (active-low) |
 | **3** | Pad matrix row 2 | 4×3 matrix scanning |
 | **4** | Pad matrix row 3 | 4×3 matrix scanning |
@@ -153,10 +172,10 @@ Available for GPIO: **30**
 | **7** | SAI1 TX_DATA0 | DAC1 stereo output |
 | **8** | SAI1 RX_DATA0 | ADC1 stereo input |
 | **9** | Pad matrix col 1 | 4×3 matrix scanning |
-| **10** | RA8875 CS | SPI0 chip select for display |
-| **11** | SPI0 MOSI | Shared: RA8875 + SD card |
-| **12** | SPI0 MISO | Shared: RA8875 + SD card |
-| **13** | SPI0 SCK | Shared: RA8875 + SD card |
+| **10** | Pad matrix row 0 | 4×3 matrix scanning (relocated from pin 0) |
+| **11** | SPI0 MOSI | SD card only |
+| **12** | SPI0 MISO | SD card only |
+| **13** | SPI0 SCK | SD card only |
 | **14** | Pad matrix col 2 | 4×3 matrix scanning |
 | **15** | Serial3 RX | MIDI IN |
 | **16** | SD card CS | SPI0 chip select for SD |
@@ -165,7 +184,7 @@ Available for GPIO: **30**
 | **19** | Wire SCL | I2C bus |
 | **20** | SAI1 LRCLK | I2S frame sync |
 | **21** | SAI1 BCLK | I2S bit clock |
-| **22** | RA8875 INT | Display interrupt |
+| **22** | DESPEE ESP32_EN | Active-high enable; pull-up on module |
 | **23** | SAI1 MCLK | I2S master clock (built-in LED unavailable) |
 | **24** | Encoder Nav-X A | Quadrature channel A |
 | **25** | Encoder Nav-X B | Quadrature channel B |
@@ -180,11 +199,11 @@ Available for GPIO: **30**
 | **34** | Button A | Active-low, internal pull-up |
 | **35** | Button B | Active-low, internal pull-up |
 | **36** | Button C | Active-low, internal pull-up |
-| **37** | RA8875 RESET | Display reset |
+| **37** | DESPEE ESP32_GPIO0 | Boot mode: LOW = UART bootloader |
 | **38** | Pad LED SER | 74HC595 serial data |
 | **39** | Pad LED SRCLK | 74HC595 shift clock |
 | **40** | Pad LED RCLK | 74HC595 latch clock |
-| **41** | Status LED (MIDI) | MIDI activity indicator |
+| **41** | Pad matrix row 1 | 4×3 matrix scanning (relocated from pin 1; MIDI LED on 74HC595) |
 
 ------
 
@@ -194,4 +213,4 @@ Available for GPIO: **30**
 2. **Pin 23 = LED** — built-in LED unavailable during audio playback
 3. **Pin 6 = SAI1 RX_DATA1** — not available for general GPIO
 4. **Pin 32 = SAI1 TX_DATA1** — not available for general GPIO
-5. **SPI0 bus shared** — RA8875 display and SD card share MOSI/MISO/SCK (pins 11–13); use separate CS lines (pins 10, 16) and coordinate access in firmware
+5. **Serial1 (pins 0/1) consumed by DESPEE** — not available for pad matrix (rows 0/1 relocated to pins 10/41)

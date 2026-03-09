@@ -19,8 +19,10 @@
 - **Buttons:** PJRC Bounce Library (debouncing)
 - **Network:** QNEthernet (TCP/IP stack, mDNS, UDP)
 - **MIDI:** USBHost_t36 (USB MIDI host), Serial MIDI (TRS)
-- **Display:** RA8875 library (Adafruit_RA8875 or custom SPI driver for 4.3" TFT, 480×272)
-- **SD Card:** SdFat or SD library (SPI0, shared bus with display)
+- **Display:** Offloaded to [DESPEE](https://github.com/openaudiotools/despee) display module (ESP32-S3 running LVGL); Teensy streams binary widget commands over Serial1 UART at 921600 baud; see DESPEE protocol
+- **SD Card:** SdFat or SD library (SPI0 — exclusive, no longer shared)
+- **DESPEE update:** esp-serial-flasher (Espressif) for reflashing DESPEE firmware from SD card
+- **UI layout:** ArduinoJson — streaming JSON parser for ui.json (UI layout from SD card)
 - **Pad LEDs:** 74HC595 shift register driver (SER/SRCLK/RCLK GPIO)
 
 ------
@@ -106,7 +108,7 @@ The PJRC Audio Library runs on a timer interrupt and preempts all other code:
 | RTP audio encode | ~1% |
 | Network stack (QNEthernet + mDNS + PTP) | ~3–5% |
 | MIDI parsing | <1% |
-| UI updates (RA8875 SPI) | ~2% |
+| UI updates (DESPEE UART) | <1% |
 | Pad scanning + LED update | <1% |
 | SD card access (non-audio) | <1% |
 | **Total** | **~30–40%** |
@@ -156,7 +158,7 @@ Main Loop (low priority):
   +-- RTP/PTP message processing
   +-- mDNS daemon (polled, ~100 ms interval)
   +-- MIDI parsing (USB host ISR + Serial RX)
-  +-- Display updates (RA8875 SPI)
+  +-- Display updates (DESPEE UART — Serial1)
   +-- Encoder/button polling (3× encoders, 3× buttons)
   +-- Pad matrix scanning + LED shift register update
   +-- SD card file operations (preset load/save)
@@ -164,16 +166,17 @@ Main Loop (low priority):
 
 ------
 
-## Display Driver (RA8875)
+## Display Module (DESPEE)
 
-The 4.3" TFT display (480×272) uses the RA8875 display controller over SPI0:
+Display rendering is offloaded to the [DESPEE](https://github.com/openaudiotools/despee) module — a custom ESP32-S3 PCB with a 4.3" 800×480 capacitive touch LCD running LVGL. The Teensy communicates with DESPEE over Serial1 UART at 921600 baud:
 
-- **SPI bus:** Shared with SD card (separate CS lines, coordinated access)
-- **SPI clock:** Up to 20 MHz for RA8875
-- **Interrupt:** RA8875 INT pin (pin 22) for touch events and V-sync
-- **Reset:** Dedicated GPIO (pin 37) for hardware reset during init
+- **Protocol:** Binary widget commands (COBS-encoded, CRC16) — see DESPEE protocol docs
+- **UI layout:** Loaded from `ui.json` on SD card at boot, streamed to DESPEE as widget create/update commands
+- **Touch input:** DESPEE forwards touch coordinates back to Teensy over the same UART
+- **Boot control:** ESP32_EN (pin 22) and ESP32_GPIO0 (pin 37) for reset and firmware flashing
+- **Non-blocking:** UART writes in main loop, never in audio interrupt. Serial1 TX buffer handles bursts.
 
-Display updates run in the main loop, not the audio interrupt. Use the RA8875's built-in graphics acceleration (rectangle fill, line draw, text rendering) to minimize SPI traffic.
+Display updates run in the main loop, not the audio interrupt. The DESPEE module boots independently and renders autonomously — Teensy only sends widget state changes.
 
 ------
 
@@ -226,7 +229,7 @@ Each pad has an individual LED driven via 2× 74HC595 shift registers (12 output
 
 ## SD Card Access
 
-The panel-accessible SD card socket connects via SPI0 (shared bus with RA8875 display):
+The panel-accessible SD card socket connects via SPI0 (exclusive access — no longer shared with display):
 
 - **CS pin:** Pin 16
 - **Library:** SdFat (supports FAT32, exFAT)

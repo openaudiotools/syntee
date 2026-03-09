@@ -109,7 +109,7 @@ Dedicated USB-C connector for 5V power input only (no data lines connected). Thr
 
 Located on the **left edge** of the panel, below the USB connectors.
 
-Panel-accessible micro SD card socket. Connected via SPI0 (shared bus with RA8875 display, separate CS on pin 16). Supports FAT32 and exFAT for preset storage, sample loading, and configuration files.
+Panel-accessible micro SD card socket. Connected via SPI0 (exclusive access — no longer shared with display). CS on pin 16. Supports FAT32 and exFAT for preset storage, sample loading, and configuration files.
 
 ---
 
@@ -153,8 +153,8 @@ Panel-mount momentary push buttons. No external pull-up resistors needed — Tee
 
 | | Col 0 (pin 5) | Col 1 (pin 9) | Col 2 (pin 14) |
 |---|---|---|---|
-| **Row 0 (pin 0)** | Pad 1 | Pad 2 | Pad 3 |
-| **Row 1 (pin 1)** | Pad 4 | Pad 5 | Pad 6 |
+| **Row 0 (pin 10)** | Pad 1 | Pad 2 | Pad 3 |
+| **Row 1 (pin 41)** | Pad 4 | Pad 5 | Pad 6 |
 | **Row 2 (pin 3)** | Pad 7 | Pad 8 | Pad 9 |
 | **Row 3 (pin 4)** | Pad 10 | Pad 11 | Pad 12 |
 
@@ -166,20 +166,20 @@ Panel-mount momentary push buttons. No external pull-up resistors needed — Tee
 
 ---
 
-## Display (4.3" TFT, RA8875 Controller)
+## DESPEE Display Module (6-pin JST-PH)
 
 | Pin | Signal | Teensy Pin |
 |-----|--------|-----------|
-| CS | SPI chip select | 10 |
-| SCK | SPI clock | 13 |
-| MOSI | SPI data out | 11 |
-| MISO | SPI data in | 12 |
-| INT | Interrupt | 22 |
-| RESET | Hardware reset | 37 |
-| VCC | 3.3V | — |
-| GND | Ground | — |
+| 1 | 5V | — |
+| 2 | GND | — |
+| 3 | UART TX (Teensy → DESPEE) | 1 |
+| 4 | UART RX (DESPEE → Teensy) | 0 |
+| 5 | ESP32_EN | 22 |
+| 6 | ESP32_GPIO0 | 37 |
 
-4.3" TFT LCD, 480×272 resolution, RA8875 display controller. SPI0 bus (shared with SD card, separate CS lines).
+External [DESPEE](https://github.com/openaudiotools/despee) display module — custom ESP32-S3 PCB with 4.3" 800×480 capacitive touch LCD running LVGL. Connected via Serial1 UART at 921600 baud. Boot control pins (EN/GPIO0) used for firmware updates via esp-serial-flasher.
+
+See [DESPEE integration guide](https://github.com/openaudiotools/despee/blob/main/docs/integration-guide.md).
 
 ---
 
