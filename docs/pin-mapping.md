@@ -4,6 +4,14 @@
 
 ------
 
+## Teensy Mounting
+
+The Teensy 4.1 is mounted via **socketed headers** — male pin headers soldered to the Teensy, inserted into female socket headers on the main board. This covers all **edge pins (0–41)** and the **bottom pads** (USB Host D+/D−, Ethernet TX±/RX±). Bottom pads are soldered to short pin headers on the Teensy underside and connect through matching sockets on the main board. This allows the Teensy to be removed for debugging or replacement without desoldering.
+
+**Impedance note:** The header/socket interface introduces a small impedance discontinuity. This is acceptable for Ethernet (100 Mbps, short traces to MagJack) and USB Host (Full Speed 12 Mbps for MIDI controllers). For PC USB-C (routed directly from Teensy's onboard connector, not through headers), maintain 90Ω differential traces on the main board to preserve USB 2.0 High Speed signal integrity for future USB Audio support.
+
+------
+
 ## Pin Reference Source
 
 All assignments verified against the official [PJRC Teensy 4.1 reference cards](https://www.pjrc.com/store/teensy41.html) (card11a/card11b rev4) and the PJRC Audio Library source code.

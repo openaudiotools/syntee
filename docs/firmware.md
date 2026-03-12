@@ -63,6 +63,13 @@ MIDI IN ────────────────────────
       │   DAC1+DAC2   │ │   from DAC)   │ │   to network) │
       │   stereo out) │ │               │ │               │
       └───────────────┘ └───────────────┘ └───────────────┘
+
+              ▲ (also feeds into Audio Router)
+      ┌───────────────┐
+      │  RTP Decode   │
+      │  (AES67 RX    │
+      │   from network)│
+      └───────────────┘
 ```
 
 ### Synth Engine (Planned)
@@ -83,6 +90,7 @@ Polyphony target: **8 voices** of a typical subtractive synth patch (osc + filte
 
 - **QNEthernet** for TCP/IP, UDP, mDNS
 - **AES67 TX:** RTP packetizer encodes stereo audio into L24/48000/2 packets (1 ms packet time, 48 samples/ch)
+- **AES67 RX:** RTP depacketizer receives one stereo stream (L24/48000/2). Subscribes to a multicast group via IGMP, buffers incoming packets in a jitter buffer (~4 ms), and feeds decoded PCM into the Audio Router for mixing with local sources
 - **PTP slave:** IEEE 1588v2 software timestamping via Teensy GPT timer (~50–200 µs accuracy in practice)
 - **mDNS/DNS-SD:** Announces `synth-XXXX.local` and `_jfa-audio._udp` / `_jfa-midi2._udp` services
 
@@ -105,13 +113,14 @@ The PJRC Audio Library runs on a timer interrupt and preempts all other code:
 | I2S receive (2× stereo) | ~2% |
 | I2S transmit (2× stereo) | ~2% |
 | Synth engine (8 voices) | ~15–25% |
-| RTP audio encode | ~1% |
+| RTP audio encode (TX) | ~1% |
+| RTP audio decode (RX) + jitter buffer | ~1% |
 | Network stack (QNEthernet + mDNS + PTP) | ~3–5% |
 | MIDI parsing | <1% |
 | UI updates (DESPEE UART) | <1% |
 | Pad scanning + LED update | <1% |
 | SD card access (non-audio) | <1% |
-| **Total** | **~30–40%** |
+| **Total** | **~31–41%** |
 
 **~60% CPU headroom** remains — room for more voices, effects, or future features.
 

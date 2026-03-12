@@ -60,13 +60,13 @@ Standard MIDI IN circuit with 6N138 optocoupler → Serial3 RX (pin 15).
 
 ## Ethernet (RJ45 MagJack)
 
-RJ45 with integrated magnetics. Teensy Ethernet bottom pads connect directly to the MagJack through short, impedance-controlled differential traces (100Ω differential). No external coupling capacitors — the Teensy 4.1 PHY has on-chip AC coupling, and the MagJack has integrated magnetics with built-in isolation. Follow PJRC Teensy 4.1 Ethernet reference design.
+RJ45 with integrated magnetics. Teensy Ethernet bottom pads connect via pin headers into sockets on the main board, then through short, impedance-controlled differential traces (100Ω differential) to the MagJack. No external coupling capacitors — the Teensy 4.1 PHY has on-chip AC coupling, and the MagJack has integrated magnetics with built-in isolation. The header/socket interface is acceptable at 100 Mbps with short traces. Follow PJRC Teensy 4.1 Ethernet reference design.
 
 ---
 
 ## USB Host (USB-A Socket)
 
-Single USB-A socket for MIDI controllers. Connected to Teensy USB Host bottom pads (D+, D-, GND). USB 2.0 differential pairs require 90Ω impedance-controlled routing. Place Teensy near the board edge closest to the USB-A connector to minimize trace length.
+Single USB-A socket for MIDI controllers. Connected to Teensy USB Host bottom pads via pin headers into sockets on the main board, then routed to the USB-A connector. USB Full Speed (12 Mbps) for MIDI controllers — the header/socket interface is acceptable at this speed. Place Teensy near the board edge closest to the USB-A connector to minimize trace length.
 
 **VBUS protection:** 5V supplied through AP2553 USB power switch IC (overcurrent limiting ~500 mA, thermal shutdown). Protects against shorted or misbehaving USB devices.
 
@@ -94,6 +94,8 @@ Teensy 4.1 native USB-C connector. Used for:
 - Firmware updates (USB DFU)
 - USB MIDI device mode (Teensy appears as a MIDI device to the host PC)
 - Serial debug console
+
+**USB Audio ready:** USB 2.0 High Speed capable — supports future USB Audio Class 2 implementation. PC USB-C routes directly from the Teensy's onboard connector (not through headers), so maintain 90Ω differential traces on the main board for signal integrity.
 
 ---
 

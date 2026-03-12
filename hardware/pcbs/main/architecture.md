@@ -2,6 +2,26 @@
 
 ---
 
+## Teensy Mounting
+
+The Teensy 4.1 is socketed onto the main board — not soldered directly:
+
+- **Edge pins (0–41):** Male pin headers soldered to the Teensy, inserted into female socket headers on the main board
+- **Bottom pads (USB Host, Ethernet):** Short male pin headers soldered to the Teensy underside pads, inserted into matching female sockets on the main board
+- **PC USB-C:** Routes directly from the Teensy's onboard USB-C connector to the panel cutout — not through headers
+
+This allows the Teensy to be removed for debugging, replacement, or reuse without desoldering.
+
+### Impedance Considerations
+
+The header/socket interface introduces a small impedance discontinuity on the bottom-pad signals:
+
+- **Ethernet (100 Mbps):** Tolerant of the discontinuity — short traces to MagJack, 100Ω differential target. The DP83825I PHY's internal equalization handles minor reflections.
+- **USB Host (Full Speed, 12 Mbps):** Tolerant — MIDI controllers use Full Speed USB, well within the error margin of socketed connections.
+- **PC USB-C (High Speed, 480 Mbps):** Not routed through headers — goes directly from the Teensy's onboard connector. Maintain **90Ω differential** traces on the main board between the Teensy USB-C and the panel cutout to support future USB Audio Class 2.
+
+---
+
 ## AK4619VN Codec Configuration
 
 - **Address:** 0x10 (CAD pin tied low)

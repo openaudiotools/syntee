@@ -33,7 +33,7 @@
   - GPIO for encoders/buttons; UART link to DESPEE display module
   - PJRC Audio Library ecosystem (oscillators, filters, envelopes, effects)
   - Built-in Ethernet (DP83825I PHY, 100 Mbps)
-- **DAW connectivity:** Via Ethernet (AES67) — stereo network audio TX
+- **DAW connectivity:** Via Ethernet (AES67) — stereo network audio TX + RX
 
 ------
 
@@ -51,7 +51,7 @@
 ### Power Input
 
 - **Dedicated USB-C power input** (5V only, no PD negotiation, power-only — no data lines)
-- **PC USB-C** — Teensy native USB for firmware updates and USB MIDI device mode
+- **PC USB-C** — Teensy native USB for firmware updates and USB MIDI device mode. USB 2.0 High Speed capable — reserved for future USB Audio Class 2 support
 - No STUSB4500 needed — SynTee draws under 1A at 5V
 - Simple: Power USB-C → polyfuse → 5V rail → Teensy + codec + peripherals
 

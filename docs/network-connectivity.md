@@ -27,7 +27,9 @@ SynTee participates in the OpenAudioTools network ecosystem defined in the [shar
 
 ### Audio TX — `_jfa-audio._udp`
 
-SynTee publishes one stereo audio TX stream:
+SynTee publishes one stereo audio TX stream and can subscribe to one stereo RX stream:
+
+#### TX Stream
 
 | Service Instance | TXT Fields |
 |-----------------|------------|
@@ -35,6 +37,16 @@ SynTee publishes one stereo audio TX stream:
 
 **RTP payload:** L24 (24-bit linear PCM), 48 kHz, stereo, 1 ms packet time (48 samples/ch).
 **Packet size:** 48 × 2 × 3 = 288 bytes payload — fits easily in one Ethernet frame.
+
+#### RX Stream
+
+| Service Instance | TXT Fields |
+|-----------------|------------|
+| `Synth In 1-2._jfa-audio._udp.local` | `role=synth`, `dir=rx`, `ch=2`, `sr=48000`, `fmt=pcm24`, `pkt=1`, `stream=return` |
+
+SynTee subscribes to a remote AES67 multicast stream via IGMP join. The RX stream is depacketized and fed into the audio router as a stereo input (alongside the local ADC inputs). Useful for DAW returns, backing tracks, or click/metronome from the network.
+
+**Jitter buffer:** ~4 ms (4 packets) to absorb network timing variation. Buffer depth is fixed at startup.
 
 ### MIDI 2.0 — `_jfa-midi2._udp`
 
@@ -62,6 +74,8 @@ SynTee implements full AES67 for DAW interoperability:
 
 ### SDP (Session Description Protocol)
 
+#### TX SDP (announced by SynTee)
+
 ```
 v=0
 o=- <session-id> <version> IN IP4 <device-ip>
@@ -75,15 +89,29 @@ a=ts-refclk:ptp=IEEE1588-2008:<ptp-grandmaster-id>
 a=mediaclk:direct=0
 ```
 
+#### RX SDP (subscribed by SynTee)
+
+SynTee discovers remote TX streams via SAP announcements or manual SDP configuration. Expected format:
+
+```
+m=audio <port> RTP/AVP 96
+a=rtpmap:96 L24/48000/2
+a=ptime:1
+```
+
+The RX stream is subscribed by joining the multicast group from the remote SDP's `c=` line via IGMP.
+
 ### SAP (Session Announcement Protocol)
 
-- Multicasts SDP to **239.255.255.255:9875** every 30 seconds
-- Virtual soundcards on DAW host auto-discover the stream
+- **TX:** Multicasts SDP to **239.255.255.255:9875** every 30 seconds
+- **RX:** Listens on **239.255.255.255:9875** for remote TX stream announcements; auto-discovers available streams
+- Virtual soundcards on DAW host auto-discover the TX stream
 
 ### Bandwidth
 
 - TX: 2 ch × 48 kHz × 24 bit × 1.1 overhead ≈ **2.5 Mbps**
-- Well within 100 Mbps Ethernet capacity
+- RX: 2 ch × 48 kHz × 24 bit × 1.1 overhead ≈ **2.5 Mbps**
+- **Total:** ~5 Mbps — well within 100 Mbps Ethernet capacity
 
 ------
 
@@ -91,9 +119,10 @@ a=mediaclk:direct=0
 
 | Component | CPU impact |
 |-----------|-----------|
-| RTP packetizer (stereo) | <1% |
-| SAP/SDP announcer | <0.5% |
+| RTP packetizer TX (stereo) | <1% |
+| RTP depacketizer RX (stereo) + jitter buffer | ~1% |
+| SAP/SDP announcer + listener | <0.5% |
 | PTP slave | 2–5% |
 | mDNS/DNS-SD | <0.5% |
 | QNEthernet event loop | 2–3% |
-| **Total network** | **~5–9%** |
+| **Total network** | **~6–10%** |
