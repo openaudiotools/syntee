@@ -8,7 +8,8 @@
 
 - **Platform:** Arduino/Teensyduino (PJRC Audio Library), built via PlatformIO
 - **Audio Processing:** Block-based (128 samples @ 48 kHz = 2.67 ms latency)
-- **Core function:** MIDI-controlled synthesizer engine
+- **Architecture:** Two-layer firmware — base layer exposes hardware (codec, MIDI, network, controls), functional layer defines device behavior (synth, effects, sampler, etc.)
+- **Default function:** MIDI-controlled synthesizer engine
 
 ------
 

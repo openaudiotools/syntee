@@ -1,8 +1,8 @@
 # SYNTEE
 
-**Open-source virtual sound module / synthesizer with network audio and MIDI.**
+**Open-source DSP module for synths, effects, samplers, and more.**
 
-Built around the Teensy 4.1, SynTee is a compact desktop synthesizer designed for electronic musicians, synth enthusiasts, and DIY audio builders. It produces stereo audio output via an AK4619VN codec, accepts MIDI input over USB, TRS, and Ethernet, and streams audio over AES67 — all on a single PCB.
+Built around the Teensy 4.1, SynTee is a compact desktop DSP module designed for electronic musicians, synth enthusiasts, and DIY audio builders. A base firmware layer exposes the hardware — codec, MIDI, network audio, controls — while a swappable functional layer on top defines the device's role: synthesizer, effects processor, sampler, or anything else that fits the I/O. The primary function is a MIDI-controlled synthesizer, but the platform is open to any DSP workload.
 
 
 ![](hardware/syntee-layout.png)
@@ -20,16 +20,18 @@ Built around the Teensy 4.1, SynTee is a compact desktop synthesizer designed fo
 - **USB Audio capable** (PC USB-C is USB 2.0 HS — reserved for future USB Audio Class 2 support)
 - **mDNS/DNS-SD discovery** — auto-announces as `synth-XXXX.local`
 - **Panel-accessible SD card** for preset storage, samples, and firmware updates
-- **Single-board design** — one 4-layer PCB (140 × 200 mm), USB 5V power; display is an external [DESPEE](https://github.com/openaudiotools/despee) module connected via 6-pin JST-PH header
+- **Modular hardware** — main board (4-layer PCB, Teensy + codec + controls), rear jack board (two rows of back-panel connectors), and external [DESPEE](https://github.com/openaudiotools/despee) display module; USB 5V power
 
 ## Architecture
 
-SynTee uses a single AK4619VN codec (all 4 channels) on an I2S bus, driven by the Teensy 4.1's Cortex-M7 at 600 MHz. MIDI input triggers a software synthesizer engine built on the PJRC Audio Library. Audio is routed to dual stereo DAC outputs and simultaneously packetized as AES67 RTP for network streaming. A stereo AES67 RX stream can also be received from the network and mixed into the audio router. Two stereo inputs allow external audio processing and effects returns. Power is supplied via a dedicated USB-C 5V input.
+SynTee uses a single AK4619VN codec (all 4 channels) on an I2S bus, driven by the Teensy 4.1's Cortex-M7 at 600 MHz. The base firmware exposes audio I/O, MIDI, network, and controls; a functional layer runs on top to define device behavior. In synth mode (the default), MIDI input drives a software synthesizer engine built on the PJRC Audio Library. Audio is routed to dual stereo DAC outputs and simultaneously packetized as AES67 RTP for network streaming. A stereo AES67 RX stream can also be received from the network and mixed into the audio router. Two stereo inputs allow external audio processing and effects returns. Power is supplied via a dedicated USB-C 5V input.
+
+The diagram below shows the signal flow in synth mode:
 
 ```
                                                ┌──→ AK4619VN DAC1 ──→ OUT 1 L/R
 MIDI IN ──┐                                    │
-           ├──→ Synth Engine (Teensy DSP) ──→──┼──→ AK4619VN DAC2 ──→ OUT 2 L/R
+           ├──→ DSP Engine (Teensy 4.1)   ──→──┼──→ AK4619VN DAC2 ──→ OUT 2 L/R
 Network ──┘         ▲                          │
                     │                          ├──→ MAX97220 ──→ Headphones
 AK4619VN ADC1 ◄── IN 1 L/R                    │
@@ -55,7 +57,7 @@ syntee/
 │   ├── lib/               ← shared KiCad footprint library
 │   │   └── syntee-footprints.pretty/
 │   └── pcbs/
-│       └── main/              ← single board (4-layer)
+│       └── main/              ← main board (4-layer)
 │           ├── README.md      ← board concept, dimensions, key ICs
 │           ├── connections.md ← connector pinouts
 │           ├── architecture.md ← circuit details

@@ -8,7 +8,7 @@
 
 - **Codec:** 1× AK4619VN (4-in / 4-out, all channels used)
   - 2× stereo ADC (IN 1 L/R + IN 2 L/R — external audio inputs / effects returns)
-  - 2× stereo DAC (OUT 1 L/R + OUT 2 L/R — synthesizer outputs)
+  - 2× stereo DAC (OUT 1 L/R + OUT 2 L/R — audio outputs)
   - I2S serial audio interface (not TDM — only 4 channels)
   - I2C control interface, address 0x10 (CAD pin low)
   - 48 kHz / 24-bit target
@@ -117,5 +117,5 @@ Single 5V rail — no need for isolated domains on a single board. ADP7118 or si
 
 ### Physical (Estimated)
 
-- **Board dimensions:** 140 × 200 mm (single PCB)
+- **Board dimensions:** 140 × 200 mm (main board); additional rear jack board for two rows of back-panel connectors
 - **Power consumption:** 5V @ ~680 mA typical

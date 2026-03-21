@@ -2,7 +2,7 @@
 
 **Dimensions:** 140 × 200 mm | **Layers:** 4 | **Orientation:** Horizontal | **Instances:** 1
 
-Single board for the entire SynTee synthesizer. Houses the Teensy 4.1 (on socket headers), AK4619VN codec, MAX97220 headphone amp, MIDI interface, Ethernet MagJack, power entry, 6-pin JST-PH header for DESPEE display module, and all user controls (3 encoders, 3 buttons, 12 LED-backlit pads). Connectors are distributed across 4 panel edges: audio + MIDI (top), USB + SD (left), headphones + volume (right), Ethernet + USB host (rear).
+Main board for SynTee. Houses the Teensy 4.1 (on socket headers), AK4619VN codec, MAX97220 headphone amp, MIDI interface, Ethernet MagJack, power entry, 6-pin JST-PH header for DESPEE display module, and all user controls (3 encoders, 3 buttons, 12 LED-backlit pads). A separate rear jack board carries two rows of back-panel connectors; the [DESPEE](https://github.com/openaudiotools/despee) display module mounts externally.
 
 ## Key ICs
 
