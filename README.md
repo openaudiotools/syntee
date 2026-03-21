@@ -49,7 +49,8 @@ syntee/
 │   ├── pin-mapping.md     ← Teensy 4.1 pin assignments for SynTee
 │   ├── firmware.md        ← audio pipeline, synth engine, network stack
 │   ├── pcb-design-rules.md ← trace widths, clearances, manufacturing rules
-│   └── network-connectivity.md ← AES67 streaming, mDNS discovery, PTP sync
+│   ├── network-connectivity.md ← AES67 streaming, mDNS discovery, PTP sync
+│   └── journal/           ← development journal
 ├── hardware/              ← schematics, PCB, mechanical
 │   ├── lib/               ← shared KiCad footprint library
 │   │   └── syntee-footprints.pretty/
@@ -64,7 +65,7 @@ syntee/
 │   ├── platformio.ini
 │   ├── src/main.cpp
 │   └── lib/               ← project-local libraries
-└── journal/               ← development journal
+└── LICENSE
 ```
 
 ## Status
