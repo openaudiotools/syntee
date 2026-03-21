@@ -9,18 +9,23 @@ Built around the Teensy 4.1, SynTee is a compact desktop DSP module designed for
 
 ## Features
 
-- **2× stereo audio output** via AK4619VN codec (48 kHz / 24-bit, I2S, 3.5mm jacks)
-- **2× stereo audio input** for external processing / effects return (3.5mm jacks)
-- **Headphone output** with dedicated MAX97220 amp and analog volume knob
-- **4.3" touchscreen** (800×480, [DESPEE](https://github.com/openaudiotools/despee) module — ESP32-S3 + LVGL) for patch editing and visualization
-- **12 LED-backlit pads** (2×6 grid) for triggering, sequencing, and performance
-- **3 rotary encoders** (Nav-X, Nav-Y, Edit) + **3 buttons** (A, B, C)
-- **MIDI input** via USB host + 3.5mm TRS Type A + network MIDI 2.0
-- **AES67 network audio** TX + RX (stereo out to DAW / mixer; stereo in from network)
-- **USB Audio capable** (PC USB-C is USB 2.0 HS — reserved for future USB Audio Class 2 support)
-- **mDNS/DNS-SD discovery** — auto-announces as `synth-XXXX.local`
-- **Panel-accessible SD card** for preset storage, samples, and firmware updates
-- **Modular hardware** — main board (4-layer PCB, Teensy + codec + controls), rear jack board (two rows of back-panel connectors), and external [DESPEE](https://github.com/openaudiotools/despee) display module; USB 5V power
+### Hardware
+
+- **Open** — Modular: main board (4-layer PCB), rear jack board, and external [DESPEE](https://github.com/openaudiotools/despee) display module; easy to source parts; easy to modify and recombine
+- **Robust** — Dedicated MAX97220 headphone amp with analog volume knob; panel-accessible SD card for presets, samples, and firmware updates; quality audio via AK4619VN codec (2× stereo in + 2× stereo out, 48 kHz / 24-bit, 3.5mm jacks)
+- **Essential** — One main role, repurposable by firmware swap; 12 LED-backlit pads (2×6 grid), 3 rotary encoders (Nav-X, Nav-Y, Edit), 3 buttons (A, B, C) for focused control
+
+### Software
+
+- **Open** — Swappable functional layer defines device role (synth, effects, sampler, or anything that fits the I/O)
+- **Robust** — UI offloaded to [DESPEE](https://github.com/openaudiotools/despee) (ESP32-S3 + LVGL, 4.3" 800×480 touchscreen), DSP stays on Teensy
+- **Essential** — Single active function at a time; PJRC Audio Library block-based DSP (128 samples @ 48 kHz)
+
+### Connectivity
+
+- **Open** — AES67 network audio TX + RX (stereo out to DAW / mixer; stereo in from network); mDNS/DNS-SD discovery (`synth-XXXX.local`); network MIDI 2.0; no proprietary protocols
+- **Robust** — USB MIDI host; MIDI IN/OUT via 3.5mm TRS Type A; works standalone without a computer; USB-C 5V power (no PD negotiation needed)
+- **Essential** — Ethernet carries both audio and MIDI; standardized connectors throughout; USB Audio capable (reserved for future USB Audio Class 2 support)
 
 ## Architecture
 
@@ -72,7 +77,15 @@ syntee/
 
 ## Status
 
-**Pre-prototype / Design phase.** Hardware and firmware specifications are being defined. This repository was just initialized.
+[SYNTEE issue](https://github.com/openaudiotools/about/issues/1) · [Project board](https://github.com/orgs/openaudiotools/projects/2)
+
+## Discussions
+
+Questions, ideas, and feedback are welcome in the [SYNTEE discussion category](https://github.com/openaudiotools/about/discussions/categories/syntee) on the Open Audio Tools repo.
+
+## Contributing
+
+See the [Contributing guide](https://github.com/openaudiotools/about/blob/main/docs/contributing.md) in the Open Audio Tools repo.
 
 ## License
 
