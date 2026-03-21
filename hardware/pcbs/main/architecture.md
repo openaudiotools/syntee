@@ -131,17 +131,20 @@ Each audio input (4 jacks total) has series resistance before the ESD clamp diod
 
 ---
 
-## Headphone Output (MAX97220)
+## Headphone Output (PHONEE Module)
 
 ```
-AK4619VN DAC1 L/R ──→ MAX97220 INL/INR ──→ MAX97220 OUTL/OUTR ──→ Analog volume pot ──→ 3.5mm TRS jack
+AK4619VN DAC1 L/R ──→ Sallen-Key filter ──→ 4-pin JST-PH header ──→ PHONEE module (external)
 ```
 
-- **Amplifier:** MAX97220 stereo headphone amp (ground-referenced output, no coupling caps needed)
-- **Input:** Tapped from DAC1 output (post reconstruction filter, pre output jack)
-- **Volume control:** Panel-mount analog potentiometer (10 kΩ log taper) between MAX97220 output and the 3.5mm jack. No GPIO pin consumed — pure analog volume control.
-- **Jack location:** Right edge of panel
-- **Power:** 3.3V_A supply (shared with codec analog domain)
+- **Module:** [PHONEE](https://github.com/openaudiotools/phonee) — external headphone output board (TPA6132A2 amp, 1/4" TRS jack, PCB-mount volume pot)
+- **Input:** Tapped from DAC1 output (post reconstruction filter, pre output jack) via 4-pin JST-PH cable
+- **Power:** 5V from main board (PHONEE has 3.3–5V input range; 5V recommended for full headroom)
+- **Connector:** 4-pin JST-PH right-angle header on main board east edge. Pin 1 = Audio L, Pin 2 = Audio R, Pin 3 = 5V, Pin 4 = GND
+- **Detect:** PHONEE has a headphone detect switch — not routed to Teensy in V1 (leave detect pad unconnected)
+- **Grounding:** Shared ground plane (no isolation). SynTee is a single-board design — digital noise is managed by zone separation, not galvanic isolation
+
+See [PHONEE integration guide](https://github.com/openaudiotools/phonee/blob/main/docs/integration-guide.md) for cable and mounting details.
 
 ---
 

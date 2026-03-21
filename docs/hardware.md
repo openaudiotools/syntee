@@ -65,11 +65,11 @@
 | AP2553 USB power switch (quiescent) | ~1 mA |
 | 6N138 optocoupler | ~5 mA |
 | DESPEE display module (ESP32-S3 + 4.3" LCD + backlight) | ~250–350 mA |
-| MAX97220 headphone amp | ~10 mA |
+| PHONEE headphone module (via JST-PH) | ~30 mA |
 | 3× encoders + 3× buttons | ~5 mA |
 | 12× LED-backlit pads | ~25 mA |
 | SD card socket | ~50 mA (peak during write) |
-| **Total estimate** | **~630–730 mA** |
+| **Total estimate** | **~650–750 mA** |
 
 Within USB-C 5V / 1.5A with headroom.
 
@@ -90,7 +90,7 @@ Single 5V rail — no need for isolated domains on a single board. ADP7118 or si
 | ADP7118 | 1 | 5V → 3.3V_A ultra-low-noise LDO for codec analog supply |
 | AP2553 | 1 | USB host VBUS power switch (overcurrent protection, ~500 mA limit) |
 | DESPEE module | 1 | External display ([openaudiotools/despee](https://github.com/openaudiotools/despee)); ESP32-S3 + 4.3" 800×480 LCD; 6-pin JST-PH UART |
-| MAX97220 | 1 | Headphone amplifier, stereo, drives 3.5mm headphone jack |
+| [PHONEE](https://github.com/openaudiotools/phonee) module | 1 | External headphone output (TPA6132A2 amp, 1/4" TRS jack, volume pot); 4-pin JST-PH cable |
 | OPA1678 | 4 | Dual op-amp (single-supply rail-to-rail, 3.3V_A). Input buffers + output Sallen-Key filters for 2× stereo pairs |
 
 ### Passives & Protection
@@ -118,4 +118,4 @@ Single 5V rail — no need for isolated domains on a single board. ADP7118 or si
 ### Physical (Estimated)
 
 - **Board dimensions:** 140 × 200 mm (main board); additional rear jack board for two rows of back-panel connectors
-- **Power consumption:** 5V @ ~680 mA typical
+- **Power consumption:** 5V @ ~700 mA typical

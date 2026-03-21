@@ -78,7 +78,7 @@ Prefer MCP tools over raw Python/CLI when possible.
 
 **I2C control:** AK4619VN at address 0x10 (CAD pin low), on Wire (pins 18/19). No mux needed — single codec.
 
-**Key hardware ICs:** AK4619VN (codec), MAX97220 (headphone amp), 6N138 (MIDI optocoupler), RJ45 MagJack (Ethernet with integrated magnetics). **External module:** [DESPEE](https://github.com/openaudiotools/despee) display module (ESP32-S3 + 4.3" 800×480 LCD via 6-pin JST-PH UART header).
+**Key hardware ICs:** AK4619VN (codec), 6N138 (MIDI optocoupler), RJ45 MagJack (Ethernet with integrated magnetics). **External modules:** [DESPEE](https://github.com/openaudiotools/despee) display module (ESP32-S3 + 4.3" 800×480 LCD via 6-pin JST-PH UART header), [PHONEE](https://github.com/openaudiotools/phonee) headphone module (TPA6132A2 amp, 1/4" TRS jack, volume pot via 4-pin JST-PH).
 
 **Connectivity:** Stereo AES67 network audio TX + RX via Ethernet (DP83825I PHY on Teensy 4.1, RJ45 MagJack on-board). USB MIDI host. MIDI IN/OUT via 3.5mm TRS Type A.
 

@@ -72,17 +72,18 @@ Single USB-A socket for MIDI controllers. Connected to Teensy USB Host bottom pa
 
 ---
 
-## Headphone Output (3.5mm TRS Jack)
+## PHONEE Headphone Module (4-pin JST-PH)
 
-Located on the **right edge** of the panel.
+Located on the **right edge** of the board.
 
 | Pin | Signal | Notes |
 |-----|--------|-------|
-| Tip | Left audio | MAX97220 output L |
-| Ring | Right audio | MAX97220 output R |
-| Sleeve | GND | Signal ground |
+| 1 | Audio L | DAC1 L post-reconstruction filter |
+| 2 | Audio R | DAC1 R post-reconstruction filter |
+| 3 | 5V | Power for PHONEE module |
+| 4 | GND | Ground reference |
 
-**Connector:** 3.5mm TRS panel-mount jack. Fed from AK4619VN DAC1 output via MAX97220 stereo headphone amplifier. An analog potentiometer (panel-mount, right edge below headphone jack) controls headphone volume — no GPIO pin needed for volume control.
+**Connector:** 4-pin JST-PH right-angle header (S4B-PH-K-S), cable enters flat from board edge. Connects to external [PHONEE](https://github.com/openaudiotools/phonee) headphone module (TPA6132A2 amp, 1/4" TRS jack, PCB-mount volume pot). PHONEE mounts to the enclosure panel separately — see [PHONEE integration guide](https://github.com/openaudiotools/phonee/blob/main/docs/integration-guide.md).
 
 ---
 
