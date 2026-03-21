@@ -4,33 +4,29 @@ All connectors on the single SynTee board. Since there's only one PCB, all conne
 
 ---
 
-## Audio Output (3.5mm TS Jacks, ×4)
+## Audio Output (Amphenol ACJM-MHD Dual 1/4" TS, ×2 units)
 
-All audio outputs on the **top edge** of the panel.
+All audio outputs on the **top edge** of the panel. Each ACJM-MHD carries one stereo pair (top jack = L, bottom jack = R).
 
-| Jack | Signal | Notes |
-|------|--------|-------|
-| OUT 1 L | AK4619VN DAC1 L | Left channel, via 2nd-order Sallen-Key reconstruction filter (~40 kHz) + OPA1678 output buffer |
-| OUT 1 R | AK4619VN DAC1 R | Right channel, via 2nd-order Sallen-Key reconstruction filter (~40 kHz) + OPA1678 output buffer |
-| OUT 2 L | AK4619VN DAC2 L | Left channel, via 2nd-order Sallen-Key reconstruction filter (~40 kHz) + OPA1678 output buffer |
-| OUT 2 R | AK4619VN DAC2 R | Right channel, via 2nd-order Sallen-Key reconstruction filter (~40 kHz) + OPA1678 output buffer |
+| Unit | Top Jack (L) | Bottom Jack (R) | Signal Source |
+|------|-------------|-----------------|---------------|
+| OUT 1 | OUT 1 L | OUT 1 R | AK4619VN DAC1 L/R, via 2nd-order Sallen-Key reconstruction filter (~40 kHz) + OPA1678 output buffer |
+| OUT 2 | OUT 2 L | OUT 2 R | AK4619VN DAC2 L/R, via 2nd-order Sallen-Key reconstruction filter (~40 kHz) + OPA1678 output buffer |
 
-**Connector:** 3.5mm TS panel-mount jacks. BAT54 ESD diodes on each jack.
+**Connector:** Amphenol ACJM-MHD — dual stacked 1/4" (6.35mm) mono (TS) jacks, horizontal snap-fit PCB mount. 16.0mm wide × 31.75mm tall. BAT54 ESD diodes on each jack.
 
 ---
 
-## Audio Input (3.5mm TS Jacks, ×4)
+## Audio Input (Amphenol ACJM-MHD Dual 1/4" TS, ×2 units)
 
-All audio inputs on the **top edge** of the panel.
+All audio inputs on the **top edge** of the panel. Each ACJM-MHD carries one stereo pair (top jack = L, bottom jack = R).
 
-| Jack | Signal | Notes |
-|------|--------|-------|
-| IN 1 L | AK4619VN ADC1 L | Left channel, via 1 kΩ series resistor → BAT54 clamp → OPA1678 input buffer |
-| IN 1 R | AK4619VN ADC1 R | Right channel, via 1 kΩ series resistor → BAT54 clamp → OPA1678 input buffer |
-| IN 2 L | AK4619VN ADC2 L | Left channel, via 1 kΩ series resistor → BAT54 clamp → OPA1678 input buffer |
-| IN 2 R | AK4619VN ADC2 R | Right channel, via 1 kΩ series resistor → BAT54 clamp → OPA1678 input buffer |
+| Unit | Top Jack (L) | Bottom Jack (R) | Signal Destination |
+|------|-------------|-----------------|-------------------|
+| IN 1 | IN 1 L | IN 1 R | AK4619VN ADC1 L/R, via 1 kΩ series resistor → BAT54 clamp → OPA1678 input buffer |
+| IN 2 | IN 2 L | IN 2 R | AK4619VN ADC2 L/R, via 1 kΩ series resistor → BAT54 clamp → OPA1678 input buffer |
 
-**Connector:** 3.5mm TS panel-mount jacks. 1 kΩ series resistor before BAT54 ESD/overvoltage clamp diodes (to 3.3V_A and GND) on each jack. Maximum safe input: +20 dBu.
+**Connector:** Amphenol ACJM-MHD — dual stacked 1/4" (6.35mm) mono (TS) jacks, horizontal snap-fit PCB mount. 1 kΩ series resistor before BAT54 ESD/overvoltage clamp diodes (to 3.3V_A and GND) on each jack. Maximum safe input: +20 dBu.
 
 ---
 

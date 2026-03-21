@@ -11,8 +11,8 @@ Built around the Teensy 4.1, SynTee is a compact desktop DSP module designed for
 
 ### Hardware
 
-- **Open** — Modular: main board (4-layer PCB), rear jack board, and external [DESPEE](https://github.com/openaudiotools/despee) display module; easy to source parts; easy to modify and recombine
-- **Robust** — External [PHONEE](https://github.com/openaudiotools/phonee) headphone module (TPA6132A2 amp, 1/4" TRS jack, volume pot) via 4-pin JST-PH; panel-accessible SD card for presets, samples, and firmware updates; quality audio via AK4619VN codec (2× stereo in + 2× stereo out, 48 kHz / 24-bit, 3.5mm jacks)
+- **Open** — Modular: main board (4-layer PCB) with all connectors on-board, plus external [DESPEE](https://github.com/openaudiotools/despee) display module; easy to source parts; easy to modify and recombine
+- **Robust** — External [PHONEE](https://github.com/openaudiotools/phonee) headphone module (TPA6132A2 amp, 1/4" TRS jack, volume pot) via 4-pin JST-PH; panel-accessible SD card for presets, samples, and firmware updates; quality audio via AK4619VN codec (2× stereo in + 2× stereo out, 48 kHz / 24-bit, 1/4" TS jacks)
 - **Essential** — One main role, repurposable by firmware swap; 12 LED-backlit pads (2×6 grid), 3 rotary encoders (Nav-X, Nav-Y, Edit), 3 buttons (A, B, C) for focused control
 
 ### Software

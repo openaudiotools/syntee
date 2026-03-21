@@ -2,7 +2,7 @@
 
 **Dimensions:** 140 × 200 mm | **Layers:** 4 | **Orientation:** Horizontal | **Instances:** 1
 
-Main board for SynTee. Houses the Teensy 4.1 (on socket headers), AK4619VN codec, MIDI interface, Ethernet MagJack, power entry, 6-pin JST-PH header for DESPEE display module, 4-pin JST-PH header for [PHONEE](https://github.com/openaudiotools/phonee) headphone module, and all user controls (3 encoders, 3 buttons, 12 LED-backlit pads). A separate rear jack board carries two rows of back-panel connectors; the [DESPEE](https://github.com/openaudiotools/despee) display module and [PHONEE](https://github.com/openaudiotools/phonee) headphone module mount externally.
+Main board for SynTee. Houses the Teensy 4.1 (on socket headers), AK4619VN codec, MIDI interface, Ethernet MagJack, power entry, 6-pin JST-PH header for DESPEE display module, 4-pin JST-PH header for [PHONEE](https://github.com/openaudiotools/phonee) headphone module, and all user controls (3 encoders, 3 buttons, 12 LED-backlit pads). All connectors are on the single main board — no separate jack board. The [DESPEE](https://github.com/openaudiotools/despee) display module and [PHONEE](https://github.com/openaudiotools/phonee) headphone module mount externally.
 
 ## Key ICs
 
@@ -12,6 +12,7 @@ Main board for SynTee. Houses the Teensy 4.1 (on socket headers), AK4619VN codec
 - 4-pin JST-PH header for [PHONEE](https://github.com/openaudiotools/phonee) headphone module (TPA6132A2 amp, 1/4" TRS jack, volume pot)
 - OPA1678 — Dual audio op-amp (×4) for input buffers and output Sallen-Key filters (single-supply 3.3V_A)
 - 6N138 — MIDI IN optocoupler
+- Amphenol ACJM-MHD — Dual stacked 1/4" mono (TS) jacks (×4 units = 8 jacks), horizontal snap-fit PCB mount
 - RJ45 MagJack — Ethernet with integrated magnetics (direct connection, no external coupling caps)
 - ADP7118 — LDO (5V → 3.3V_A for codec analog supply)
 - AP2553 — USB host VBUS power switch (overcurrent protection)
@@ -19,7 +20,7 @@ Main board for SynTee. Houses the Teensy 4.1 (on socket headers), AK4619VN codec
 ## Functional Zones
 
 1. **Digital zone:** Teensy 4.1, USB host, Ethernet, MIDI circuits
-2. **Analog zone:** AK4619VN codec, OPA1678 op-amp stages (×4), audio jacks (8× 3.5mm)
+2. **Analog zone:** AK4619VN codec, OPA1678 op-amp stages (×4), audio jacks (4× Amphenol ACJM-MHD dual 1/4" TS)
 3. **Power zone:** USB-C power entry, polyfuse, LDO
 4. **Control zone:** 3× encoder headers, 3× button headers, 12× pad matrix + LED shift registers
 5. **Display zone:** 6-pin JST-PH header for DESPEE display module (Serial1 UART + boot control)
@@ -32,8 +33,8 @@ Physical placement map driven by noise isolation and the 4-edge panel layout. Co
 ```
                     NORTH (top edge — audio + MIDI)
      ┌──────────────────────────────────────────────────────┐
-     │ [OUT2L][OUT2R] [OUT1L][OUT1R] [MIDI] [MIDI] [IN2L][IN2R] [IN1L][IN1R] │
-     │  3.5mm outputs (×4)            OUT  IN    3.5mm inputs (×4)            │
+     │  [OUT2 L/R]  [OUT1 L/R]  [MIDI OUT] [MIDI IN]  [IN2 L/R]  [IN1 L/R]  │
+     │  ACJM-MHD ×2 (dual 1/4")        3.5mm TRS      ACJM-MHD ×2 (dual 1/4") │
      │                                                                        │
      │      [OPA1678 ×4 + filter passives]   [BAT54 ESD]   [6N138]           │
 W    │                                                                        │  E

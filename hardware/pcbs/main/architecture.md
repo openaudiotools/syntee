@@ -119,10 +119,10 @@ The USB Host VBUS output is protected by an AP2553 (or equivalent) power switch 
 
 ## Audio Input Protection
 
-Each audio input (4 jacks total) has series resistance before the ESD clamp diodes to limit clamp current from overvoltage signals:
+Each audio input (4 jacks total, via 2× ACJM-MHD dual jack units) has series resistance before the ESD clamp diodes to limit clamp current from overvoltage signals:
 
 ```
-3.5mm jack ──→ 1 kΩ series resistor ──→ BAT54 clamp diodes (to 3.3V_A and GND) ──→ OPA1678 input buffer
+1/4" TS jack ──→ 1 kΩ series resistor ──→ BAT54 clamp diodes (to 3.3V_A and GND) ──→ OPA1678 input buffer
 ```
 
 - **Series resistor:** 1 kΩ limits clamp current to ~4.5 mA at +20 dBu (~7.75 Vpk) worst case. Also forms part of the anti-alias RC filter with the 3.3 nF cap at the ADC input.

@@ -63,15 +63,17 @@
 | AK4619VN codec | ~20 mA |
 | OPA1678 op-amps (×4, input/output stages) | ~60 mA |
 | AP2553 USB power switch (quiescent) | ~1 mA |
+| USB host device (MIDI controller) | ~50–500 mA |
 | 6N138 optocoupler | ~5 mA |
 | DESPEE display module (ESP32-S3 + 4.3" LCD + backlight) | ~250–350 mA |
 | PHONEE headphone module (via JST-PH) | ~30 mA |
 | 3× encoders + 3× buttons | ~5 mA |
 | 12× LED-backlit pads | ~25 mA |
 | SD card socket | ~50 mA (peak during write) |
-| **Total estimate** | **~650–750 mA** |
+| **Total estimate (typical)** | **~750–850 mA** |
+| **Total estimate (worst-case)** | **~1,250 mA** |
 
-Within USB-C 5V / 1.5A with headroom.
+USB-C power connector uses 5.1kΩ CC pull-downs, allowing up to 3A from capable sources. Typical draw (~850 mA) is well within the 1.5A USB-C default; worst-case (~1.25A with a power-hungry MIDI controller) still fits comfortably.
 
 ### Power Distribution
 
@@ -117,5 +119,5 @@ Single 5V rail — no need for isolated domains on a single board. ADP7118 or si
 
 ### Physical (Estimated)
 
-- **Board dimensions:** 140 × 200 mm (main board); additional rear jack board for two rows of back-panel connectors
+- **Board dimensions:** 140 × 200 mm (single board — all connectors on-board, no separate jack board)
 - **Power consumption:** 5V @ ~700 mA typical
